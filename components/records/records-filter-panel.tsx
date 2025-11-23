@@ -190,7 +190,7 @@ export function RecordsFilterPanel({ onFiltersChange, isCollapsed = false, facet
             {getActiveFilterCount() > 0 && (
               <button
                 onClick={clearAllFilters}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                className="text-xs text-red-600 hover:text-red-700 font-medium"
               >
                 Clear all
               </button>
@@ -237,7 +237,7 @@ export function RecordsFilterPanel({ onFiltersChange, isCollapsed = false, facet
                         }}
                         className="border-slate-300"
                       />
-                      <span className="text-xs text-blue-600 font-semibold flex-1 group-hover:text-blue-700">
+                      <span className="text-xs text-red-600 font-semibold flex-1 group-hover:text-red-700">
                         Select all
                       </span>
                     </label>
@@ -261,7 +261,7 @@ export function RecordsFilterPanel({ onFiltersChange, isCollapsed = false, facet
                           </label>
                           <button
                             onClick={() => selectOnly(facet.field, actualValue)}
-                            className="text-[10px] text-blue-600 hover:text-blue-700 font-medium opacity-0 group-hover:opacity-100 transition-opacity px-1"
+                            className="text-[10px] text-red-600 hover:text-red-700 font-medium opacity-0 group-hover:opacity-100 transition-opacity px-1"
                           >
                             only
                           </button>

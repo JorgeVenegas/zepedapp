@@ -154,7 +154,7 @@ export function RecordsGraphics({ filters, graphicType, groupBy, dateRange }: Re
                   <td className="px-4 py-3">
                     <div className="w-full bg-slate-100 rounded-full h-2">
                       <div
-                        className="bg-blue-500 h-2 rounded-full transition-all"
+                        className="bg-red-500 h-2 rounded-full transition-all"
                         style={{ width: `${item.percentage}%` }}
                       />
                     </div>

@@ -153,47 +153,91 @@ export function RecordsPage() {
   }), [facets])
 
   return (
-    <div className="h-full flex flex-col bg-white">
-      <div className="p-6 pb-4">
-        <RecordsFilters 
-          onFiltersChange={setUnifiedFilters} 
-          onToggleActionMenu={() => setIsActionMenuCollapsed(!isActionMenuCollapsed)}
-          isActionMenuCollapsed={isActionMenuCollapsed}
-          availableOptions={availableOptions}
-          visualizationMode={visualizationMode}
-          onVisualizationModeChange={setVisualizationMode}
-          graphicType={graphicType}
-          onGraphicTypeChange={setGraphicType}
-          groupBy={groupBy}
-          onGroupByChange={setGroupBy}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-          externalFilters={unifiedFilters}
-        />
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-red-50/30 via-slate-50 to-rose-50/20 relative flex flex-col">
+      {/* Animated background pattern */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(239,68,68,0.04),transparent_50%)] pointer-events-none"></div>
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#fef2f2_1px,transparent_1px),linear-gradient(to_bottom,#fef2f2_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+
+      <style jsx global>{`
+        @keyframes gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient {
+          animation: gradient 3s ease infinite;
+        }
+      `}</style>
+
+      {/* Header Section */}
+      <div className="flex-shrink-0 relative z-20 bg-gradient-to-r from-white/90 via-red-50/90 to-white/90 backdrop-blur-xl border-b border-red-200/40 shadow-lg shadow-red-500/5">
+        <div className="px-8 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-black bg-gradient-to-r from-red-600 via-rose-500 to-red-600 bg-clip-text text-transparent mb-2 animate-gradient bg-[length:200%_auto]">
+                Records
+              </h1>
+              <p className="text-sm text-slate-600 flex items-center gap-2 font-medium">
+                <span className="bg-gradient-to-r from-slate-700 to-slate-600 bg-clip-text text-transparent">
+                  Browse and analyze your mobility records
+                </span>
+                {totalCount > 0 && (
+                  <>
+                    <span className="text-slate-300">•</span>
+                    <Badge variant="secondary" className="bg-red-100 text-red-700 hover:bg-red-200 font-semibold">
+                      {totalCount.toLocaleString()} records
+                    </Badge>
+                  </>
+                )}
+              </p>
+            </div>
+          </div>
+
+          <RecordsFilters
+            onFiltersChange={setUnifiedFilters}
+            onToggleActionMenu={() => setIsActionMenuCollapsed(!isActionMenuCollapsed)}
+            isActionMenuCollapsed={isActionMenuCollapsed}
+            availableOptions={availableOptions}
+            visualizationMode={visualizationMode}
+            onVisualizationModeChange={setVisualizationMode}
+            graphicType={graphicType}
+            onGraphicTypeChange={setGraphicType}
+            groupBy={groupBy}
+            onGroupByChange={setGroupBy}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            externalFilters={unifiedFilters}
+          />
+        </div>
       </div>
-      <div className="flex-1 flex overflow-hidden px-6 pb-6">
-        <RecordsFilterPanel 
-          onFiltersChange={setUnifiedFilters} 
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden relative z-10 min-h-0">
+        <RecordsFilterPanel
+          onFiltersChange={setUnifiedFilters}
           isCollapsed={isActionMenuCollapsed}
           facets={facets}
           loading={loading}
           selectedFilters={unifiedFilters}
         />
-        <div className="flex-1 overflow-hidden">
-          {visualizationMode === 'records' ? (
-            <RecordsTable 
-              filters={actualFilters} 
-              totalCount={totalCount}
-              onToggleActionMenu={() => setIsActionMenuCollapsed(!isActionMenuCollapsed)}
-              isActionMenuCollapsed={isActionMenuCollapsed}
-              dateRange={dateRange}
-              onTotalCountChange={setTotalCount}
-            />
-          ) : visualizationMode === 'patterns' ? (
-            <RecordsPatterns filters={actualFilters} dateRange={dateRange} />
-          ) : (
-            <RecordsGraphics filters={actualFilters} graphicType={graphicType} groupBy={groupBy} dateRange={dateRange} />
-          )}
+        <div className="flex-1 overflow-hidden px-8 py-6 min-w-0">
+          <div className="h-full rounded-[20px] overflow-hidden backdrop-blur-sm bg-white/95 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] transition-all duration-200" style={{
+            background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(249,250,251,0.95))'
+          }}>
+            {visualizationMode === 'records' ? (
+              <RecordsTable
+                filters={actualFilters}
+                totalCount={totalCount}
+                onToggleActionMenu={() => setIsActionMenuCollapsed(!isActionMenuCollapsed)}
+                isActionMenuCollapsed={isActionMenuCollapsed}
+                dateRange={dateRange}
+                onTotalCountChange={setTotalCount}
+              />
+            ) : visualizationMode === 'patterns' ? (
+              <RecordsPatterns filters={actualFilters} dateRange={dateRange} />
+            ) : (
+              <RecordsGraphics filters={actualFilters} graphicType={graphicType} groupBy={groupBy} dateRange={dateRange} />
+            )}
+          </div>
         </div>
       </div>
     </div>
