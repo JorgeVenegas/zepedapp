@@ -43,6 +43,7 @@ export interface ClusteringOptions {
   embeddingModel?: string;
   maxKeywordsInTitle?: number;
   useLLMForDescription?: boolean;
+  skipTranslation?: boolean;
   cachedEmbeddings?: Map<string, number[]>;
   cachedTranslations?: Map<string, { summary: string; keywords: string[] }>;
 }
@@ -81,4 +82,5 @@ export const DEFAULT_OPTIONS: Required<Omit<ClusteringOptions, 'cachedEmbeddings
   embeddingModel: 'Xenova/all-MiniLM-L6-v2',
   maxKeywordsInTitle: 5,
   useLLMForDescription: false,
+  skipTranslation: false,
 };

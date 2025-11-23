@@ -194,9 +194,9 @@ export async function clusterIncidents(
   const normalized = preprocessIncidents(incidents);
   console.log('Normalized incidents:', normalized.length);
   
-  // Translate Spanish incidents to English if translation is available
+  // Translate Spanish incidents to English if translation is available and not skipped
   let translations: Map<string, { summary: string; keywords: string[] }> | undefined;
-  if (isTranslationAvailable()) {
+  if (!fullOptions.skipTranslation && isTranslationAvailable()) {
     console.log('🌐 Checking for Spanish incidents to translate...');
     console.log(`📦 Cached translations available: ${fullOptions.cachedTranslations?.size || 0}`);
     translations = await translateIncidents(normalized, fullOptions.cachedTranslations);
@@ -218,6 +218,8 @@ export async function clusterIncidents(
       }
       console.log(`✅ Applied ${translations.size} translations`);
     }
+  } else if (fullOptions.skipTranslation) {
+    console.log('⏭️  Translation skipped - incidents assumed to be in English');
   }
   
   // Generate AI embeddings if enabled and available

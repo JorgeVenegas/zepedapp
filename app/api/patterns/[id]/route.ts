@@ -65,7 +65,8 @@ export async function GET(request: NextRequest, context: any) {
 
 export async function DELETE(request: NextRequest, context: any) {
   try {
-    const id = context?.params?.id;
+    const params = await context.params;
+    const id = params?.id;
     
     if (!id) {
       return NextResponse.json(
