@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { TwitterClient } from '@/lib/client/twitter/twitter-client';
 import { TwitterService } from '@/lib/service/tweet-incident';
+import {entitiesToCSV} from "@/lib/service/parse-tweets";
 
 export async function GET(request: NextRequest) {
     try{
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
                 { status: 500 }
             );
         }
+
         const client = new TwitterClient(apiKey, twitterQuery);
         // Fetch tweets
         const tweets = await client.fetchLatestTweets();
@@ -31,6 +33,24 @@ export async function GET(request: NextRequest) {
         // Optional: filter and sort
         const processedEntities = TwitterService.filterAndSort(entities);
 
+        const csvContent = entitiesToCSV(processedEntities);
+
+        // Save to file (Node.js)
+        const fs = require('fs');
+        const path = require('path');
+
+        const folderPath = './exports'; // Change this to your desired folder
+        const fileName = `tweets_${Date.now()}.csv`;
+        const filePath = path.join(folderPath, fileName);
+
+        // Create folder if it doesn't exist
+        if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath, { recursive: true });
+        }
+
+        // Write CSV to file
+        fs.writeFileSync(filePath, csvContent, 'utf8');
+        console.log(`CSV saved to: ${filePath}`);
         return NextResponse.json({
             success: true,
             count: processedEntities.length,
