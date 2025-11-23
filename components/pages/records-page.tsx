@@ -1,18 +1,18 @@
 "use client"
 
+import { useState } from "react"
 import { RecordsTable } from "@/components/records/records-table"
 import { RecordsFilters } from "@/components/records/records-filters"
 
 export function RecordsPage() {
-  return (
-    <div className="p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">Records</h1>
-        <p className="text-muted-foreground mt-1">View and filter all pulled data records</p>
-      </div>
+  const [filters, setFilters] = useState<Record<string, string[]>>({})
 
-      <RecordsFilters />
-      <RecordsTable />
+  return (
+    <div className="p-6 space-y-4 h-full flex flex-col bg-gradient-to-br from-slate-50/50 via-white to-slate-100/30 backdrop-blur-sm">
+      <RecordsFilters onFiltersChange={setFilters} />
+      <div className="flex-1 overflow-hidden">
+        <RecordsTable filters={filters} />
+      </div>
     </div>
   )
 }
