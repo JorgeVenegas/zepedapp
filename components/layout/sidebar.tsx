@@ -39,14 +39,6 @@ export function Sidebar({ expanded = false }: SidebarProps) {
           </h1>
         </div>
       </div>
-      <p
-        className={cn(
-          "text-xs text-gray-500 px-4 pt-2 transition-all duration-300 whitespace-nowrap overflow-hidden",
-          expanded ? "opacity-100 h-auto" : "opacity-0 h-0"
-        )}
-      >
-        Mobility AI Insights
-      </p>
 
       <nav className="flex-1 px-2 py-6 space-y-2">
         {navItems.map((item) => {
@@ -57,9 +49,9 @@ export function Sidebar({ expanded = false }: SidebarProps) {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-lg backdrop-blur-sm",
+                "flex items-center gap-3 py-3 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-lg backdrop-blur-sm",
                 isActive ? "bg-gradient-to-r from-blue-100/80 to-indigo-100/60 text-blue-700 font-semibold border-2 border-blue-200/60 shadow-blue-200/20" : "text-slate-600 hover:bg-gradient-to-r hover:from-slate-100/80 hover:to-slate-200/60 hover:text-slate-800 hover:border-2 hover:border-slate-200/60",
-                !expanded && "justify-center"
+                expanded ? "pl-3 pr-3 justify-start" : "pl-3 pr-3 justify-start"
               )}
               title={!expanded ? item.label : undefined}
             >
@@ -76,32 +68,6 @@ export function Sidebar({ expanded = false }: SidebarProps) {
           )
         })}
       </nav>
-
-      <div
-        className={cn(
-          "p-4 border-t-2 border-slate-200/60 transition-all duration-300 bg-gradient-to-r from-slate-100/60 to-slate-200/40 backdrop-blur-sm",
-          !expanded && "px-2"
-        )}
-      >
-        <div
-          className={cn(
-            "rounded-2xl bg-gradient-to-r from-green-100/80 to-emerald-100/60 border-2 border-green-200/60 shadow-lg shadow-green-200/20 transition-all duration-300 overflow-hidden backdrop-blur-sm",
-            expanded ? "p-3" : "p-2"
-          )}
-        >
-          <p
-            className={cn(
-              "text-xs text-green-700 font-semibold whitespace-nowrap transition-all duration-300",
-              expanded ? "opacity-100" : "opacity-0 h-0"
-            )}
-          >
-            Ready to connect with Supabase
-          </p>
-          {!expanded && (
-            <div className="w-2 h-2 bg-green-600 rounded-full mx-auto shadow-lg shadow-green-300/50" />
-          )}
-        </div>
-      </div>
     </aside>
   )
 }
