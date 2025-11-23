@@ -423,13 +423,16 @@ export function DashboardPage() {
           padding-bottom: 40px;
         }
         .react-grid-item {
-          transition: all 100ms ease-out !important;
-          transition-property: left, top, width, height !important;
+          transition: all 250ms cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+          transition-property: transform !important;
           margin-bottom: 8px;
           box-sizing: border-box;
         }
         .react-grid-item.resizing {
           transition: none !important;
+        }
+        .react-grid-item.react-grid-placeholder {
+          transition: all 150ms ease-out !important;
         }
         .react-grid-item > div {
           width: 100% !important;
@@ -597,10 +600,10 @@ export function DashboardPage() {
               key={item.i}
               className={`group/item transition-all duration-100 ${isEditMode ? 'edit-mode-item' : ''}`}
               style={{
-                border: isEditMode ? '3px dashed rgba(59, 130, 246, 0.3)' : 'none',
+                border: 'none',
                 borderRadius: '20px',
                 transition: 'all 0.1s cubic-bezier(0.4, 0, 0.2, 1)',
-                backgroundColor: isEditMode ? 'rgba(255, 255, 255, 0.5)' : 'transparent',
+                backgroundColor: 'transparent',
                 width: '100%',
                 height: '100%',
                 display: 'flex',
