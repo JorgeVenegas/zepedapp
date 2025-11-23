@@ -1,6 +1,6 @@
 # Zepedapp - Mobility Analytics Dashboard
 
-A Next.js analytics platform for monitoring and analyzing mobility patterns, incidents, and data insights with AI-powered pattern clustering and social media integration.
+Maia is an AI-powered mobility analytics platform that transforms how cities understand and resolve transportation challenges by turning scattered user feedback into actionable insights. By intelligently scraping incidents from social media and correlating them with internal incident reports, Maia dramatically increases incident collection beyond traditional reporting channels, capturing issues that would otherwise go unnoticed. The platform automatically identifies, categorizes, and enriches each data point with severity assessments, keyword extraction, and intelligent summaries, then uses advanced pattern recognition to uncover common problems and root causes affecting riders across the transportation system. Most importantly, Maia doesn't just identify issues—it proposes three tailored solutions at different budget levels for each pattern, complete with impact projections and feasibility assessments, empowering transportation authorities to make data-driven decisions that directly improve user satisfaction and system reliability by addressing the problems that matter most to riders.
 
 <p align="center">
   <a href="#features"><strong>Features</strong></a> ·
