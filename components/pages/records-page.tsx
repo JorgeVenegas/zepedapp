@@ -172,8 +172,8 @@ export function RecordsPage() {
       <div className="flex-shrink-0 relative z-20 bg-gradient-to-r from-white/90 via-red-50/90 to-white/90 backdrop-blur-xl border-b border-red-200/40 shadow-lg shadow-red-500/5">
         <div className="px-8 py-6">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-4xl font-black bg-gradient-to-r from-red-600 via-rose-500 to-red-600 bg-clip-text text-transparent mb-2 animate-gradient bg-[length:200%_auto]">
+            <div className="flex items-center gap-4 flex-wrap">
+              <h1 className="text-2xl font-black bg-gradient-to-r from-red-600 via-rose-500 to-red-600 bg-clip-text text-transparent animate-gradient bg-[length:200%_auto]">
                 Records
               </h1>
               <p className="text-sm text-slate-600 flex items-center gap-2 font-medium">
