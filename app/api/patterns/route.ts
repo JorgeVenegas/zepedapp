@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
       filters: filters || {},
       priority: priority || 0,
       frequency: frequency || 0,
-      time_range_start,
-      time_range_end,
+      timeRangeStart: time_range_start,
+      timeRangeEnd: time_range_end,
       incident_ids: incident_ids || [],
     };
     

@@ -34,6 +34,7 @@ export default function PatternClusteringDemo() {
           options: {
             similarityThreshold: 0.65,
             timeWindowHours: 24,
+            minClusterSize: 2,
           },
         }),
       });

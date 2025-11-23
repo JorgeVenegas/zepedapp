@@ -36,14 +36,14 @@ export function PatternsTable({ title, patterns, type }: PatternsTableProps) {
               ) : (
                 patterns.map((pattern) => (
                   <tr key={pattern.id} className="border-b border-red-50 hover:bg-red-50 transition">
-                    <td className="py-3 px-4 text-gray-800 font-medium">{pattern.text}</td>
+                    <td className="py-3 px-4 text-gray-800 font-medium">{pattern.title}</td>
                     <td className="text-center py-3 px-4">
                       <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200">
-                        {pattern.count}
+                        {pattern.frequency}
                       </Badge>
                     </td>
                     <td className="text-center py-3 px-4 text-gray-600 text-xs">
-                      {new Date(pattern.lastSeen).toLocaleDateString()}
+                      {new Date(pattern.created_at).toLocaleDateString()}
                     </td>
                   </tr>
                 ))

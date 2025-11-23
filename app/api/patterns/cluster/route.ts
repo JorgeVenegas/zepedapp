@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { clusterIncidents } from '@/lib/clustering';
+import { loadCachedEmbeddings, saveCachedEmbeddings } from '@/lib/clustering/embeddings';
+import { loadCachedTranslations, saveCachedTranslations } from '@/lib/clustering/translation';
 import type { Incident, Pattern, ClusteringOptions } from '@/lib/clustering';
 
 export async function POST(request: NextRequest) {
@@ -15,6 +17,11 @@ export async function POST(request: NextRequest) {
       preview?: boolean;
     };
     
+    console.log('=== CLUSTERING REQUEST ===');
+    console.log('Incident IDs count:', incident_ids?.length || 'all');
+    console.log('Options received:', options ? JSON.stringify(options, null, 2) : 'undefined (will use defaults)');
+    console.log('Preview mode:', preview);
+    
     // Fetch incidents from database
     let query = supabase.from('incidents').select('*');
     
@@ -23,6 +30,8 @@ export async function POST(request: NextRequest) {
     }
     
     const { data: incidents, error: fetchError } = await query;
+    
+    console.log('Fetched incidents:', incidents?.length || 0);
     
     if (fetchError) {
       return NextResponse.json(
@@ -53,8 +62,45 @@ export async function POST(request: NextRequest) {
       keywords: inc.keywords || [],
     }));
     
+    console.log('Mapped incidents sample (first 3):');
+    mappedIncidents.slice(0, 3).forEach((inc, idx) => {
+      console.log(`  [${idx}]:`, {
+        id: inc.id,
+        time: inc.time,
+        service: inc.service,
+        category: inc.category,
+        summary: inc.summary?.substring(0, 100),
+        keywords: inc.keywords,
+      });
+    });
+    
     // Run clustering algorithm
-    const patterns = clusterIncidents(mappedIncidents, options);
+    const clusteringOptions = options || {
+      similarityThreshold: 0.55, // Slightly higher threshold for better quality
+      timeWindowHours: 168,      // 7 days window to capture more incidents
+      minClusterSize: 2,         // Require at least 2 incidents per pattern
+      useEmbeddings: true,       // Enable AI-powered clustering with local model (cached)
+      embeddingModel: 'Xenova/all-MiniLM-L6-v2',
+    };
+    
+    // Load cached embeddings and translations from database
+    const incidentIds = mappedIncidents.map(inc => inc.id);
+    const cachedEmbeddings = await loadCachedEmbeddings(incidentIds, supabase);
+    const cachedTranslations = await loadCachedTranslations(incidentIds, supabase);
+    clusteringOptions.cachedEmbeddings = cachedEmbeddings;
+    clusteringOptions.cachedTranslations = cachedTranslations;
+    
+    console.log('Starting clustering with options:', JSON.stringify(clusteringOptions, null, 2));
+    const patterns = await clusterIncidents(mappedIncidents, clusteringOptions);
+    console.log('Clustering complete. Patterns generated:', patterns.length);
+    
+    // Save new embeddings and translations back to database for future use
+    if (clusteringOptions.cachedEmbeddings && clusteringOptions.cachedEmbeddings.size > cachedEmbeddings.size) {
+      await saveCachedEmbeddings(clusteringOptions.cachedEmbeddings, supabase);
+    }
+    if (clusteringOptions.cachedTranslations && clusteringOptions.cachedTranslations.size > cachedTranslations.size) {
+      await saveCachedTranslations(clusteringOptions.cachedTranslations, supabase);
+    }
     
     // If preview mode, just return the patterns without saving
     if (preview) {
@@ -67,8 +113,10 @@ export async function POST(request: NextRequest) {
           filters: p.filters,
           priority: p.priority,
           frequency: p.frequency,
-          time_range_start: p.timeRangeStart,
-          time_range_end: p.timeRangeEnd,
+          time_range: {
+            start: p.timeRangeStart,
+            end: p.timeRangeEnd,
+          },
           incident_ids: p.incidentIds,
         })),
       });
@@ -86,8 +134,8 @@ export async function POST(request: NextRequest) {
           filters: pattern.filters,
           priority: pattern.priority,
           frequency: pattern.frequency,
-          time_range_start: pattern.timeRangeStart,
-          time_range_end: pattern.timeRangeEnd,
+          timeRangeStart: pattern.timeRangeStart,
+          timeRangeEnd: pattern.timeRangeEnd,
           incident_ids: pattern.incidentIds,
         })
         .select()
@@ -121,8 +169,8 @@ export async function POST(request: NextRequest) {
         priority: p.priority,
         frequency: p.frequency,
         time_range: {
-          start: p.time_range_start,
-          end: p.time_range_end,
+          start: p.timeRangeStart,
+          end: p.timeRangeEnd,
         },
       })),
     });

@@ -43,6 +43,8 @@ export interface ClusteringOptions {
   embeddingModel?: string;
   maxKeywordsInTitle?: number;
   useLLMForDescription?: boolean;
+  cachedEmbeddings?: Map<string, number[]>;
+  cachedTranslations?: Map<string, { summary: string; keywords: string[] }>;
 }
 
 // Internal types
@@ -70,13 +72,13 @@ export const DEFAULT_WEIGHTS: SimilarityWeights = {
   sentiment: 0.05,
 };
 
-export const DEFAULT_OPTIONS: Required<ClusteringOptions> = {
+export const DEFAULT_OPTIONS: Required<Omit<ClusteringOptions, 'cachedEmbeddings' | 'cachedTranslations'>> = {
   weights: DEFAULT_WEIGHTS,
   similarityThreshold: 0.65,
   timeWindowHours: 24,
   minClusterSize: 1,
-  useEmbeddings: false,
-  embeddingModel: 'text-embedding-3-small',
+  useEmbeddings: true,
+  embeddingModel: 'Xenova/all-MiniLM-L6-v2',
   maxKeywordsInTitle: 5,
   useLLMForDescription: false,
 };
