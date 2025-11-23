@@ -10,6 +10,7 @@ import { BarChartComponent } from "@/components/dashboard/charts/bar-chart"
 import { PieChartComponent } from "@/components/dashboard/charts/pie-chart"
 import { AreaChartComponent } from "@/components/dashboard/charts/area-chart"
 import { RadarChartComponent } from "@/components/dashboard/charts/radar-chart"
+import { MexicoCityChart } from "@/components/dashboard/charts/mexico-city-chart"
 import { TrendingUp, AlertTriangle, Activity, Zap, Edit3, Eye, Plus, Trash2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ComponentsSidebar } from "@/components/dashboard/components-sidebar"
@@ -20,6 +21,7 @@ const INITIAL_GRID_ITEMS = new Set([
   "metric-2",
   "metric-3",
   "metric-4",
+  "mexico-city-chart",
   "line-chart",
   "alerts",
   "bar-chart",
@@ -139,14 +141,17 @@ export function DashboardPage() {
     { i: "metric-3", x: 6, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
     { i: "metric-4", x: 9, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
 
-    // Charts
-    { i: "line-chart", x: 0, y: 2, w: 8, h: 4, minW: 4, minH: 3 },
-    { i: "alerts", x: 8, y: 2, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: "bar-chart", x: 0, y: 6, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "pie-chart", x: 6, y: 6, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "area-chart", x: 0, y: 10, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "radar-chart", x: 6, y: 10, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "patterns", x: 0, y: 14, w: 12, h: 4, minW: 6, minH: 3 },
+    // Mexico City Chart - Featured at top
+    { i: "mexico-city-chart", x: 0, y: 2, w: 5, h: 5, minW: 5, minH: 2 },
+
+    // Other Charts
+    { i: "line-chart", x: 0, y: 6, w: 8, h: 4, minW: 4, minH: 3 },
+    { i: "alerts", x: 8, y: 6, w: 4, h: 4, minW: 3, minH: 3 },
+    { i: "bar-chart", x: 0, y: 10, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: "pie-chart", x: 6, y: 10, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: "area-chart", x: 0, y: 14, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: "radar-chart", x: 6, y: 14, w: 6, h: 4, minW: 4, minH: 3 },
+    { i: "patterns", x: 0, y: 18, w: 12, h: 4, minW: 6, minH: 3 },
   ])
 
   const onLayoutChange = (newLayout: Layout[]) => {
@@ -157,6 +162,7 @@ export function DashboardPage() {
 
   const getComponentTypeFromKey = (key: string) => {
     if (key.startsWith("metric")) return "metric"
+    if (key.startsWith("mexico-city-chart")) return "mexico-city-chart"
     if (key.startsWith("line-chart")) return "line-chart"
     if (key.startsWith("bar-chart")) return "bar-chart"
     if (key.startsWith("pie-chart")) return "pie-chart"
@@ -190,6 +196,17 @@ export function DashboardPage() {
               trend={metricConfig.trend}
               trendPositive={metricConfig.trendPositive}
             />
+          </div>
+        </div>
+      )
+    }
+
+    if (componentType === "mexico-city-chart") {
+      const useSample = !INITIAL_GRID_ITEMS.has(key)
+      return (
+        <div className={containerStyle} style={{ minHeight: '200px' }}>
+          <div style={{ width: '100%', height: '100%' }}>
+            <MexicoCityChart variant={useSample ? "sample" : "default"} />
           </div>
         </div>
       )
