@@ -1,4 +1,5 @@
 import { InternalPatternsPage } from "@/components/pages/internal-patterns-page"
+import { MainLayout } from "@/components/layout/main-layout"
 
 export const metadata = {
   title: "Internal Patterns | MAIA",
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function Page() {
-  return <InternalPatternsPage />
+  return (
+    <MainLayout>
+      <InternalPatternsPage />
+    </MainLayout>
+  )
 }

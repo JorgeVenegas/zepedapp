@@ -13,16 +13,16 @@ interface MetricCardProps {
 
 export function MetricCard({ title, value, icon: Icon, trend, trendPositive }: MetricCardProps) {
   return (
-    <Card className="p-6 bg-card border-border hover:border-primary/50 transition-colors">
-      <div className="flex items-start justify-between">
-        <div>
+    <Card className="p-6 bg-gradient-to-br from-white via-slate-50/80 to-slate-100/50 border-slate-200/60 hover:border-blue-300/60 transition-all duration-300 hover:shadow-2xl hover:scale-105 w-full h-full">
+      <div className="flex items-start justify-between h-full">
+        <div className="flex flex-col justify-between flex-1">
           <p className="text-sm text-muted-foreground mb-2">{title}</p>
           <h3 className="text-2xl font-bold text-foreground">{value}</h3>
           <p className={`text-xs mt-2 ${trendPositive ? "text-green-500" : "text-red-500"}`}>
             {trend} from last period
           </p>
         </div>
-        <Icon className="w-8 h-8 text-primary opacity-50" />
+        <Icon className="w-8 h-8 text-primary opacity-50 flex-shrink-0" />
       </div>
     </Card>
   )

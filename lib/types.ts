@@ -23,8 +23,22 @@ export interface Pattern {
   filters: Record<string, any>
   priority: number
   frequency: number
+  timeRangeEnd: string | null
+  timeRangeStart: string | null
+  incidentIds: string[]
   created_at: string
   updated_at: string
+}
+
+// Display pattern type for dashboard visualization
+export interface DisplayPattern {
+  id: string
+  text: string
+  count: number
+  recordIds: string[]
+  firstSeen: string
+  lastSeen: string
+  type: "external" | "internal"
 }
 
 // Solution types

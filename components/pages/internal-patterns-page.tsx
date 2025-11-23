@@ -7,55 +7,75 @@ export function InternalPatternsPage() {
   const internalPatterns = [
     {
       id: "i1",
-      text: "user feedback",
-      count: 412,
-      recordIds: [],
-      firstSeen: "2025-01-15",
-      lastSeen: "2025-11-22",
-      type: "internal" as const,
+      title: "user feedback",
+      description: "Pattern related to user feedback submissions",
+      filters: {},
+      priority: 3,
+      frequency: 412,
+      timeRangeStart: "2025-01-15",
+      timeRangeEnd: "2025-11-22",
+      incidentIds: [],
+      created_at: "2025-01-15",
+      updated_at: "2025-11-22",
     },
     {
       id: "i2",
-      text: "performance issue",
-      count: 298,
-      recordIds: [],
-      firstSeen: "2025-01-15",
-      lastSeen: "2025-11-22",
-      type: "internal" as const,
+      title: "performance issue",
+      description: "Pattern related to performance concerns",
+      filters: {},
+      priority: 4,
+      frequency: 298,
+      timeRangeStart: "2025-01-15",
+      timeRangeEnd: "2025-11-22",
+      incidentIds: [],
+      created_at: "2025-01-15",
+      updated_at: "2025-11-22",
     },
     {
       id: "i3",
-      text: "feature request",
-      count: 245,
-      recordIds: [],
-      firstSeen: "2025-01-15",
-      lastSeen: "2025-11-22",
-      type: "internal" as const,
+      title: "feature request",
+      description: "Pattern related to feature requests",
+      filters: {},
+      priority: 2,
+      frequency: 245,
+      timeRangeStart: "2025-01-15",
+      timeRangeEnd: "2025-11-22",
+      incidentIds: [],
+      created_at: "2025-01-15",
+      updated_at: "2025-11-22",
     },
     {
       id: "i4",
-      text: "data accuracy",
-      count: 189,
-      recordIds: [],
-      firstSeen: "2025-01-15",
-      lastSeen: "2025-11-22",
-      type: "internal" as const,
+      title: "data accuracy",
+      description: "Pattern related to data accuracy issues",
+      filters: {},
+      priority: 3,
+      frequency: 189,
+      timeRangeStart: "2025-01-15",
+      timeRangeEnd: "2025-11-22",
+      incidentIds: [],
+      created_at: "2025-01-15",
+      updated_at: "2025-11-22",
     },
     {
       id: "i5",
-      text: "integration delay",
-      count: 156,
-      recordIds: [],
-      firstSeen: "2025-01-15",
-      lastSeen: "2025-11-22",
-      type: "internal" as const,
+      title: "integration delay",
+      description: "Pattern related to integration delays",
+      filters: {},
+      priority: 3,
+      frequency: 156,
+      timeRangeStart: "2025-01-15",
+      timeRangeEnd: "2025-11-22",
+      incidentIds: [],
+      created_at: "2025-01-15",
+      updated_at: "2025-11-22",
     },
   ]
 
-  const [sortBy, setSortBy] = useState<"count" | "date">("count")
+  const [sortBy, setSortBy] = useState<"frequency" | "date">("frequency")
 
   const sorted = [...internalPatterns].sort((a, b) =>
-    sortBy === "count" ? b.count - a.count : new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime(),
+    sortBy === "frequency" ? b.frequency - a.frequency : new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
   )
 
   return (
@@ -67,12 +87,12 @@ export function InternalPatternsPage() {
 
       <div className="flex gap-2">
         <button
-          onClick={() => setSortBy("count")}
+          onClick={() => setSortBy("frequency")}
           className={`px-4 py-2 rounded-md font-medium transition ${
-            sortBy === "count" ? "bg-red-600 text-white" : "bg-white text-red-600 border border-red-200 hover:bg-red-50"
+            sortBy === "frequency" ? "bg-red-600 text-white" : "bg-white text-red-600 border border-red-200 hover:bg-red-50"
           }`}
         >
-          Sort by Count
+          Sort by Frequency
         </button>
         <button
           onClick={() => setSortBy("date")}
