@@ -7,7 +7,10 @@ import dynamic from "next/dynamic"
 // Dynamically import map components to avoid SSR issues
 const MapContainer = dynamic(
   () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => <div>Loading map...</div>
+  }
 )
 const TileLayer = dynamic(
   () => import("react-leaflet").then((mod) => mod.TileLayer),

@@ -7,14 +7,16 @@ import { TopPatternsCard } from "@/components/dashboard/top-patterns-card"
 import { RecordsTable } from "@/components/records/records-table"
 import { RecordsFilters } from "@/components/records/records-filters"
 import { RecordsFilterPanel } from "@/components/records/records-filter-panel"
+import { MexicoCityChart } from "@/components/dashboard/charts/mexico-city-chart"
 import { Activity, Edit3, Eye, Plus, Trash2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ComponentsSidebar } from "@/components/dashboard/components-sidebar"
 import type { Pattern } from "@/lib/types"
 
 const INITIAL_GRID_ITEMS = new Set([
+  "mexico-city-chart",
   "records-timeseries-overview",
-  "records-pie-priority", 
+  "records-pie-priority",
   "records-bar-service",
   "records-area-category",
   "records-line-trends",
@@ -251,19 +253,22 @@ export function DashboardPage() {
   }
 
   const [layout, setLayout] = useState<Layout[]>([
+    // Mexico City Chart - Featured at top
+    { i: "mexico-city-chart", x: 0, y: 0, w: 5, h: 5, minW: 5, minH: 2 },
+
     // Top row - patterns and priority chart
-    { i: "top-patterns", x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
-    { i: "records-pie-priority", x: 6, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "top-patterns", x: 5, y: 0, w: 7, h: 5, minW: 4, minH: 4 },
 
     // Records Analytics - Comprehensive Dashboard (bigger sizes)
     { i: "records-timeseries-overview", x: 0, y: 5, w: 12, h: 5, minW: 8, minH: 4 },
-    { i: "records-bar-service", x: 0, y: 10, w: 6, h: 5, minW: 4, minH: 4 },
-    { i: "records-area-category", x: 6, y: 10, w: 6, h: 5, minW: 4, minH: 4 },
-    { i: "records-line-trends", x: 0, y: 15, w: 6, h: 5, minW: 4, minH: 4 },
-    
+    { i: "records-pie-priority", x: 0, y: 10, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-bar-service", x: 6, y: 10, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-area-category", x: 0, y: 15, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-line-trends", x: 6, y: 15, w: 6, h: 5, minW: 4, minH: 4 },
+
     // Additional analytics (bigger sizes)
-    { i: "records-pie-source", x: 6, y: 15, w: 6, h: 5, minW: 4, minH: 4 },
-    { i: "records-bar-category", x: 0, y: 20, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-pie-source", x: 0, y: 20, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-bar-category", x: 6, y: 20, w: 6, h: 5, minW: 4, minH: 4 },
   ])
 
   const onLayoutChange = (newLayout: Layout[]) => {
@@ -273,6 +278,7 @@ export function DashboardPage() {
   }
 
   const getComponentTypeFromKey = (key: string) => {
+    if (key.startsWith("mexico-city-chart")) return "mexico-city-chart"
     if (key.startsWith("top-patterns")) return "top-patterns"
     if (key.startsWith("records-timeseries")) return "records-timeseries"
     if (key.startsWith("records-bar-chart")) return "records-bar-chart"
@@ -286,9 +292,15 @@ export function DashboardPage() {
     const metricContainerStyle = "h-full w-full flex flex-col"
     const componentType = getComponentTypeFromKey(key)
 
-
-
-
+    if (componentType === "mexico-city-chart") {
+      return (
+        <div className={containerStyle} style={{ minHeight: '200px' }}>
+          <div style={{ width: '100%', height: '100%' }}>
+            <MexicoCityChart variant="default" />
+          </div>
+        </div>
+      )
+    }
 
     if (componentType === "top-patterns") {
       const config = componentConfigs[key] || { graphicType: 'patterns', groupBy: 'frequency', filters: {} }
