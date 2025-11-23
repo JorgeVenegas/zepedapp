@@ -57,8 +57,16 @@ export default function GenerateSolution({ pattern, onSolutionsGenerated }: Gene
     return 'destructive';
   };
 
-  const calculateDays = (implementationTime: { start: Date; end: Date }) => {
-    return Math.ceil((implementationTime.end.getTime() - implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+  // Safe date calculation that handles both Date objects and strings
+  const calculateDays = (start: Date | string, end: Date | string): number => {
+    try {
+      const startDate = typeof start === 'string' ? new Date(start) : start;
+      const endDate = typeof end === 'string' ? new Date(end) : end;
+      return Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    } catch (error) {
+      console.error('Error calculating days:', error);
+      return 0;
+    }
   };
 
   return (
@@ -99,7 +107,7 @@ export default function GenerateSolution({ pattern, onSolutionsGenerated }: Gene
           </div>
           
           {solutions.map((solution, index) => {
-            const days = calculateDays(solution.implementationTime);
+            const days = calculateDays(solution.implementationTime.start, solution.implementationTime.end);
             return (
               <Card key={index} className="bg-muted/30">
                 <CardHeader className="pb-3">

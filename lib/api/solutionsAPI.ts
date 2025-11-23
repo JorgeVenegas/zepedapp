@@ -1,6 +1,30 @@
 import type { Solution, SolutionGenerationOptions, Pattern } from '@/lib/types/solution';
 
 /**
+ * Helper function to safely get time from Date or string
+ */
+const getTime = (date: Date | string): number => {
+  if (typeof date === 'string') {
+    return new Date(date).getTime();
+  }
+  return date.getTime();
+};
+
+/**
+ * Helper function to safely calculate days between dates
+ */
+const calculateDays = (start: Date | string, end: Date | string): number => {
+  try {
+    const startTime = getTime(start);
+    const endTime = getTime(end);
+    return Math.ceil((endTime - startTime) / (1000 * 60 * 60 * 24));
+  } catch (error) {
+    console.error('Error calculating days:', error);
+    return 0;
+  }
+};
+
+/**
  * Generate solutions for a given pattern using the Groq AI API
  * @param pattern - The incident pattern to generate solutions for
  * @param options - Optional configuration for solution generation
@@ -56,7 +80,7 @@ export function filterSolutions(
   return solutions.filter(solution => {
     if (maxCost && solution.cost.min > maxCost) return false;
     if (maxDays) {
-      const days = Math.ceil((solution.implementationTime.end.getTime() - solution.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+      const days = calculateDays(solution.implementationTime.start, solution.implementationTime.end);
       if (days > maxDays) return false;
     }
     if (minFeasibility && solution.feasibility < minFeasibility) return false;
@@ -79,8 +103,8 @@ export function sortSolutions(
       case 'cost':
         return ((a.cost.min + a.cost.max) / 2) - ((b.cost.min + b.cost.max) / 2);
       case 'time':
-        const aDays = Math.ceil((a.implementationTime.end.getTime() - a.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
-        const bDays = Math.ceil((b.implementationTime.end.getTime() - b.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+        const aDays = calculateDays(a.implementationTime.start, a.implementationTime.end);
+        const bDays = calculateDays(b.implementationTime.start, b.implementationTime.end);
         return aDays - bDays;
       case 'feasibility':
       default:
@@ -122,7 +146,7 @@ export function getSolutionStats(solutions: Solution[]) {
   const avgFeasibility = solutions.reduce((sum, s) => sum + s.feasibility, 0) / solutions.length;
   const avgCost = solutions.reduce((sum, s) => sum + (s.cost.min + s.cost.max) / 2, 0) / solutions.length;
   const avgDays = solutions.reduce((sum, s) => {
-    const days = Math.ceil((s.implementationTime.end.getTime() - s.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+    const days = calculateDays(s.implementationTime.start, s.implementationTime.end);
     return sum + days;
   }, 0) / solutions.length;
 
