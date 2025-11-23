@@ -52,14 +52,20 @@ export function ComponentPreview({ componentId }: ComponentPreviewProps) {
         )}
 
         {componentId === 'bar-chart' && (
-          <div className="w-full h-full bg-gradient-to-br from-cyan-100 via-white to-slate-50 rounded-lg p-2 shadow-sm border border-cyan-100">
+          <div className="w-full h-full bg-gradient-to-br from-cyan-50/30 via-white to-blue-50/20 rounded-lg p-2 shadow-sm">
             <div className="text-[11px] uppercase tracking-wide text-cyan-700 font-semibold">Bar Chart</div>
             <svg className="w-full h-16" viewBox="0 0 200 100">
+              <defs>
+                <linearGradient id="bar-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#06b6d4" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#0891b2" stopOpacity="0.8" />
+                </linearGradient>
+              </defs>
               {[40, 70, 55, 80, 60].map((height, i) => {
                 const width = 22
                 const gap = 14
                 const x = 12 + i * (width + gap)
-                return <rect key={i} x={x} y={100 - height} width={width} height={height} fill="#06b6d4" rx="4" />
+                return <rect key={i} x={x} y={100 - height} width={width} height={height} fill="url(#bar-gradient)" rx="6" />
               })}
             </svg>
           </div>
