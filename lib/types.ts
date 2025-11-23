@@ -1,4 +1,4 @@
-export interface Record {
+export interface DataRecord {
   id: string
   source: "twitter" | "facebook" | "instagram" | "internal"
   type: "external" | "internal"
