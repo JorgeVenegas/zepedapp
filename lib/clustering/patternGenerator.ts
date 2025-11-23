@@ -191,6 +191,7 @@ export function generatePattern(
     priority,
     frequency: incidents.length,
     incidentIds: incidents.map(i => i.id),
-    timeRange,
+    timeRangeStart: timeRange.start.toISOString(),
+    timeRangeEnd: timeRange.end.toISOString(),
   };
 }

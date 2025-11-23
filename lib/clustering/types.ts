@@ -19,11 +19,9 @@ export interface Pattern {
   filters: Record<string, any>;
   priority: number;
   frequency: number;
+  timeRangeStart?: string | null;
+  timeRangeEnd?: string | null;
   incidentIds?: string[];
-  timeRange?: {
-    start: Date;
-    end: Date;
-  };
 }
 
 // Configuration

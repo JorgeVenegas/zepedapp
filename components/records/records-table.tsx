@@ -1,57 +1,170 @@
 "use client"
 
+import { useEffect, useState, useRef, useCallback } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, Loader2 } from "lucide-react"
+import { Incident } from "@/lib/types"
 
-export function RecordsTable() {
-  const records = [
-    { id: "REC-001", source: "Twitter", status: "Processed", date: "2025-11-22 10:30", score: 0.92 },
-    { id: "REC-002", source: "Facebook", status: "Processing", date: "2025-11-22 10:25", score: 0.87 },
-    { id: "REC-003", source: "Instagram", status: "Processed", date: "2025-11-22 10:20", score: 0.95 },
-    { id: "REC-004", source: "Twitter", status: "Failed", date: "2025-11-22 10:15", score: 0.45 },
-    { id: "REC-005", source: "Facebook", status: "Processed", date: "2025-11-22 10:10", score: 0.88 },
-  ]
+interface RecordsTableProps {
+  filters?: Record<string, string[]>
+}
+
+export function RecordsTable({ filters }: RecordsTableProps) {
+  const [incidents, setIncidents] = useState<Incident[]>([])
+  const [loading, setLoading] = useState(true)
+  const [hasMore, setHasMore] = useState(true)
+  const [page, setPage] = useState(1)
+  const observerTarget = useRef<HTMLDivElement>(null)
+  const pageSize = 50
+
+  // Reset when filters change
+  useEffect(() => {
+    setIncidents([])
+    setPage(1)
+    setHasMore(true)
+  }, [filters])
+
+  useEffect(() => {
+    fetchIncidents()
+  }, [filters, page])
+
+  const fetchIncidents = async () => {
+    if (!hasMore && page > 1) return
+    
+    setLoading(true)
+    try {
+      const params = new URLSearchParams({
+        page: page.toString(),
+        pageSize: pageSize.toString(),
+      })
+
+      // Add multiple values for each filter field
+      if (filters) {
+        Object.entries(filters).forEach(([key, values]) => {
+          if (values.length > 0) {
+            params.append(key, values.join(','))
+          }
+        })
+      }
+
+      const response = await fetch(`/api/records?${params}`)
+      const result = await response.json()
+
+      if (result.success) {
+        const newIncidents = result.data
+        
+        if (page === 1) {
+          setIncidents(newIncidents)
+        } else {
+          setIncidents(prev => [...prev, ...newIncidents])
+        }
+        
+        // Check if there are more pages
+        setHasMore(page < result.pagination.totalPages)
+      }
+    } catch (error) {
+      console.error("Failed to fetch incidents:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          setPage(prev => prev + 1)
+        }
+      },
+      { threshold: 0.1 }
+    )
+
+    const currentTarget = observerTarget.current
+    if (currentTarget) {
+      observer.observe(currentTarget)
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget)
+      }
+    }
+  }, [hasMore, loading])
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
+
+  const getPriorityColor = (priority: number) => {
+    if (priority === 1) return "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+    if (priority === 2) return "bg-green-500/10 text-green-600 dark:text-green-400"
+    if (priority === 3) return "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400"
+    if (priority === 4) return "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+    return "bg-red-500/10 text-red-600 dark:text-red-400"
+  }
+
+  if (loading && incidents.length === 0) {
+    return (
+      <Card className="bg-card border-border p-8 text-center h-full flex items-center justify-center">
+        <div className="flex items-center gap-2">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <p className="text-muted-foreground">Loading incidents...</p>
+        </div>
+      </Card>
+    )
+  }
+
+  if (incidents.length === 0 && !loading) {
+    return (
+      <Card className="bg-card border-border p-8 text-center h-full flex items-center justify-center">
+        <p className="text-muted-foreground">No incidents found</p>
+      </Card>
+    )
+  }
 
   return (
-    <Card className="bg-card border-border overflow-hidden">
-      <div className="overflow-x-auto">
+    <Card className="bg-white border border-slate-200 overflow-hidden h-full flex flex-col shadow-sm">
+      <div className="flex-1 overflow-auto">
         <table className="w-full">
-          <thead>
-            <tr className="border-b border-border">
-              <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">ID</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Source</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Status</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Date</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">Score</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-foreground"></th>
+          <thead className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200">
+            <tr>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Time</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Service</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Source</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Subservice</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Category</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Summary</th>
+              <th className="px-4 py-2 text-left text-[11px] font-semibold text-slate-500 uppercase tracking-wider w-12"></th>
             </tr>
           </thead>
           <tbody>
-            {records.map((record) => (
-              <tr key={record.id} className="border-b border-border hover:bg-muted transition-colors">
-                <td className="px-6 py-4 text-sm text-foreground font-mono">{record.id}</td>
-                <td className="px-6 py-4 text-sm text-foreground">{record.source}</td>
-                <td className="px-6 py-4 text-sm">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      record.status === "Processed"
-                        ? "bg-green-500/20 text-green-700"
-                        : record.status === "Processing"
-                          ? "bg-blue-500/20 text-blue-700"
-                          : "bg-red-500/20 text-red-700"
-                    }`}
-                  >
-                    {record.status}
+            {incidents.map((incident) => (
+              <tr key={incident.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors cursor-pointer">
+                <td className="px-4 py-0 text-xs text-slate-500 whitespace-nowrap font-mono">{formatDate(incident.time)}</td>
+                <td className="px-4 py-0 text-xs text-slate-900 font-medium">{incident.service}</td>
+                <td className="px-4 py-0 text-xs text-slate-600">{incident.source}</td>
+                <td className="px-4 py-0 text-xs text-slate-600">{incident.subservice}</td>
+                <td className="px-4 py-0 text-xs text-slate-600">{incident.category}</td>
+                <td className="px-4 py-0 text-xs">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getPriorityColor(incident.priority)}`}>
+                    P{incident.priority}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm text-muted-foreground">{record.date}</td>
-                <td className="px-6 py-4 text-sm font-medium text-foreground">{(record.score * 100).toFixed(0)}%</td>
-                <td className="px-6 py-4 text-right">
-                  <Link href={`/records/${record.id}`}>
-                    <Button variant="ghost" size="sm">
-                      <ChevronRight className="w-4 h-4" />
+                <td className="px-4 py-0 text-xs text-slate-600 max-w-md truncate">{incident.summary}</td>
+                <td className="px-4 py-0 text-right">
+                  <Link href={`/records/${incident.id}`}>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-slate-100 rounded-full transition-colors">
+                      <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
                     </Button>
                   </Link>
                 </td>
@@ -59,17 +172,18 @@ export function RecordsTable() {
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-muted/50">
-        <p className="text-sm text-muted-foreground">Showing 1-5 of 847 records</p>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            Previous
-          </Button>
-          <Button variant="outline" size="sm">
-            Next
-          </Button>
+        
+        {/* Intersection observer target */}
+        <div ref={observerTarget} className="h-20 flex items-center justify-center">
+          {loading && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span className="text-xs">Loading more...</span>
+            </div>
+          )}
+          {!hasMore && incidents.length > 0 && (
+            <p className="text-xs text-muted-foreground">No more incidents to load</p>
+          )}
         </div>
       </div>
     </Card>
