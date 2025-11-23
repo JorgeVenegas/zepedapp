@@ -11,9 +11,9 @@ export function AlertsPanel() {
   ]
 
   return (
-    <Card className="p-6 bg-card border-border">
-      <h3 className="text-lg font-semibold text-foreground mb-4">Recent Alerts</h3>
-      <div className="space-y-3">
+    <Card className="p-6 bg-card border-border w-full h-full flex flex-col">
+      <h3 className="text-lg font-semibold text-foreground mb-4 flex-shrink-0">Recent Alerts</h3>
+      <div className="space-y-3 flex-1 min-h-0 overflow-auto">
         {alerts.map((alert) => (
           <div key={alert.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted">
             {alert.type === "error" && <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}

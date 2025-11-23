@@ -93,30 +93,39 @@ export function DashboardPage() {
 
   const renderGridItem = (key: string) => {
     const containerStyle = "h-full w-full overflow-hidden flex items-stretch"
+    const metricContainerStyle = "h-full w-full flex flex-col"
 
     switch (key) {
       case "metric-1":
         return (
-          <div className={containerStyle}>
-            <MetricCard title="Active Records" value="2,847" icon={Activity} trend="+12.5%" trendPositive />
+          <div className={metricContainerStyle}>
+            <div className="flex-1 w-full">
+              <MetricCard title="Active Records" value="2,847" icon={Activity} trend="+12.5%" trendPositive />
+            </div>
           </div>
         )
       case "metric-2":
         return (
-          <div className={containerStyle}>
-            <MetricCard title="Processing Rate" value="94.2%" icon={TrendingUp} trend="+2.1%" trendPositive />
+          <div className={metricContainerStyle}>
+            <div className="flex-1 w-full">
+              <MetricCard title="Processing Rate" value="94.2%" icon={TrendingUp} trend="+2.1%" trendPositive />
+            </div>
           </div>
         )
       case "metric-3":
         return (
-          <div className={containerStyle}>
-            <MetricCard title="Alerts Today" value="23" icon={AlertTriangle} trend="+5" trendPositive={false} />
+          <div className={metricContainerStyle}>
+            <div className="flex-1 w-full">
+              <MetricCard title="Alerts Today" value="23" icon={AlertTriangle} trend="+5" trendPositive={false} />
+            </div>
           </div>
         )
       case "metric-4":
         return (
-          <div className={containerStyle}>
-            <MetricCard title="API Calls" value="45.2K" icon={Zap} trend="+8.3%" trendPositive />
+          <div className={metricContainerStyle}>
+            <div className="flex-1 w-full">
+              <MetricCard title="API Calls" value="45.2K" icon={Zap} trend="+8.3%" trendPositive />
+            </div>
           </div>
         )
       case "line-chart":
