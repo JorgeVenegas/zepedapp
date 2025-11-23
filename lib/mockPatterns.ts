@@ -1,189 +1,159 @@
-// Mock patterns data for testing the drawer functionality
-// Use this in your component or page to test the pattern drawer
+// Mock patterns data with real incident IDs from database for testing
 
 export const mockPatterns = [
   {
     id: "pattern-001",
-    title: "Metro Line 1 Service Delays",
-    description: "Recurring delays on Metro Line 1 during peak hours, affecting morning commute between 7-9 AM. Multiple incidents reported related to signal failures and overcrowding.",
+    title: "Metro Line Accessibility Issues",
+    description: "Recurring accessibility problems across metro lines including broken ramps for wheelchairs, lack of assistance for people with reduced mobility, and elevator failures at stations.",
     filters: {
-      service: ["Metro"],
-      category: ["Delay", "Service Interruption"],
-      priority: [4, 5]
+      service: ["metro"],
+      category: ["accessibility"],
+      priority: ["2"]
     },
-    priority: 4,
-    frequency: 23,
-    timeRangeStart: "2025-11-01T07:00:00Z",
-    timeRangeEnd: "2025-11-23T09:30:00Z",
-    incidentIds: [
-      "b8dfa55f-5dab-41ab-8bee-75c9ac94e764",
-      "a11a3610-bab4-4cbf-ada2-417037cbe88a",
-      "e7105105-ba90-4ea8-abdf-4d1355e5e3ba",
-      "f2c8b9d1-3e4a-5f6b-7c8d-9e0a1b2c3d4e",
-      "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
-      "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e",
-      "3c4d5e6f-7a8b-9c0d-1e2f-3a4b5c6d7e8f",
-      "4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a",
-      "5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b",
-      "6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c",
-      "7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d",
-      "8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e",
-      "9c0d1e2f-3a4b-5c6d-7e8f-9a0b1c2d3e4f",
-      "0d1e2f3a-4b5c-6d7e-8f9a-0b1c2d3e4f5a",
-      "1e2f3a4b-5c6d-7e8f-9a0b-1c2d3e4f5a6b",
-      "2f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c",
-      "3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d",
-      "4b5c6d7e-8f9a-0b1c-2d3e-4f5a6b7c8d9e",
-      "5c6d7e8f-9a0b-1c2d-3e4f-5a6b7c8d9e0f",
-      "6d7e8f9a-0b1c-2d3e-4f5a-6b7c8d9e0f1a",
-      "7e8f9a0b-1c2d-3e4f-5a6b-7c8d9e0f1a2b",
-      "8f9a0b1c-2d3e-4f5a-6b7c-8d9e0f1a2b3c",
-      "9a0b1c2d-3e4f-5a6b-7c8d-9e0f1a2b3c4d"
+    priority: 2,
+    frequency: 3,
+    timeRangeStart: "2023-10-24T14:47:00Z",
+    timeRangeEnd: "2025-08-24T19:18:00Z",
+    incident_ids: [
+      "000cb3f7-24a1-4f8e-887d-a6857746adfe",
+      "001bf7a2-53e0-43e3-8c4c-74f0b5c28566",
+      "002449d4-7250-4c70-af54-818acdc3358a"
     ],
     created_at: "2025-11-01T10:00:00Z",
     updated_at: "2025-11-23T06:00:00Z"
   },
   {
     id: "pattern-002",
-    title: "Bus Route 45 No-Shows",
-    description: "Pattern of buses not arriving at scheduled times on Route 45, particularly at downtown stops. Users report waiting 30+ minutes beyond scheduled arrival.",
+    title: "Lost Items - High Value Personal Belongings",
+    description: "Pattern of passengers losing high-value items (laptops, strollers, clothes, baby strollers) during their journey. Multiple reports of lost personal belongings with frustration about lack of clear communication and support.",
     filters: {
-      service: ["Bus"],
-      category: ["No-Show", "Schedule Deviation"],
-      subservice: ["Route 45"]
+      service: ["tren", "metro"],
+      category: ["lost-items-security"],
+      priority: ["4"]
     },
-    priority: 3,
-    frequency: 18,
-    timeRangeStart: "2025-11-10T06:00:00Z",
-    timeRangeEnd: "2025-11-22T20:00:00Z",
-    incidentIds: [
-      "abc123de-4567-89ab-cdef-0123456789ab",
-      "def456gh-7890-abcd-ef01-23456789abcd",
-      "ghi789jk-0123-4567-89ab-cdef0123456",
-      "jkl012mn-3456-7890-abcd-ef0123456789",
-      "mno345pq-6789-0abc-def0-123456789abc",
-      "pqr678st-9012-3456-789a-bcdef0123456",
-      "stu901vw-2345-6789-0abc-def0123456789",
-      "vwx234yz-5678-90ab-cdef-0123456789ab",
-      "yza567bc-8901-2345-6789-0abcdef01234",
-      "bcd890ef-1234-5678-90ab-cdef0123456",
-      "efg123hi-4567-890a-bcde-f0123456789a",
-      "hij456kl-7890-123a-bcde-f0123456789a",
-      "klm789no-0123-456a-bcde-f0123456789a",
-      "nop012qr-3456-789a-bcde-f0123456789a",
-      "qrs345tu-6789-012a-bcde-f0123456789a",
-      "tuv678wx-9012-345a-bcde-f0123456789a",
-      "wxy901za-2345-678a-bcde-f0123456789a",
-      "zab234cd-5678-901a-bcde-f0123456789a"
+    priority: 1,
+    frequency: 8,
+    timeRangeStart: "2023-03-11T21:11:00Z",
+    timeRangeEnd: "2025-12-11T09:16:00Z",
+    incident_ids: [
+      "0590db8c-0494-465a-a743-7eb4d3a6bcd8",
+      "060e29c4-607d-403f-a48c-05cd56bff537",
+      "077f28d3-edd5-4ed1-8bf3-d7ce29aeea29",
+      "0766ef67-150c-4545-9ca2-eb3df7700be0",
+      "0826f5a4-a9ab-4261-9662-fbe43f6315d1",
+      "09e3be51-d8ee-4054-b18b-4724a084f0dc",
+      "0eb3bd9a-e917-40fd-b525-74c9366adf43",
+      "0acca63b-4a5e-4db3-84b1-4a2ccebeb741"
     ],
     created_at: "2025-11-10T08:00:00Z",
     updated_at: "2025-11-22T18:00:00Z"
   },
   {
     id: "pattern-003",
-    title: "Train Overcrowding - Rush Hour",
-    description: "Severe overcrowding on express trains during evening rush hour (5-7 PM). Safety concerns raised by multiple passengers unable to board.",
+    title: "Facility Cleanliness and Maintenance Issues",
+    description: "Recurring cleanliness problems including dirty seats, unwashed bins, dirty windows, insufficient lighting, persistent bad odors, and dirty/broken bathrooms. Multiple complaints about poor maintenance affecting passenger comfort.",
     filters: {
-      service: ["Train"],
-      category: ["Overcrowding", "Safety Concern"],
-      priority: [5]
+      service: ["metro", "tren"],
+      category: ["facilities-cleanliness"],
+      priority: ["2", "3"]
     },
-    priority: 5,
-    frequency: 31,
-    timeRangeStart: "2025-10-15T17:00:00Z",
-    timeRangeEnd: "2025-11-23T19:00:00Z",
-    incidentIds: [
-      "aaa111bb-2222-3333-4444-555566667777",
-      "bbb222cc-3333-4444-5555-666677778888",
-      "ccc333dd-4444-5555-6666-777788889999",
-      "ddd444ee-5555-6666-7777-888899990000",
-      "eee555ff-6666-7777-8888-999900001111"
+    priority: 2,
+    frequency: 12,
+    timeRangeStart: "2023-10-07T09:59:00Z",
+    timeRangeEnd: "2025-11-27T16:33:00Z",
+    incident_ids: [
+      "001bf7a2-53e0-43e3-8c4c-74f0b5c28566",
+      "006deb34-d5e6-49bb-be2a-656cbae52144",
+      "03652667-4ba3-475d-9220-4a63b723aec9",
+      "04e2f372-bb07-4767-a45d-6f16bbe432f4",
+      "0567a460-1b3d-4197-a4d9-ba22ee82e7b2",
+      "07cebcae-ee9b-4f2b-ac4f-1d61e9903a92",
+      "079c4554-4e1c-4a1e-923a-7cac1400bd3a",
+      "0aed6d2e-7ae9-4927-8263-be0d4592d05a",
+      "120b8087-a1fd-4f96-9ad6-e86d1f30cb9a",
+      "14f3a895-f1cb-4bd1-86a6-aaa80ac16804",
+      "16e5d87b-e8fd-493a-b0fd-a1622c99689d",
+      "0ea3e69c-4737-449c-aa10-a3ad9d67e4e3"
     ],
     created_at: "2025-10-15T20:00:00Z",
     updated_at: "2025-11-23T19:30:00Z"
   },
   {
     id: "pattern-004",
-    title: "Station Elevator Outages",
-    description: "Multiple elevator outages at major stations affecting accessibility. Particularly impacting passengers with mobility devices and strollers.",
+    title: "Compensation and Refund Process Confusion",
+    description: "Passengers experiencing confusion about compensation for delays, rejected compensation requests, ticket refund processes, and lack of clear information about reimbursement policies.",
     filters: {
-      service: ["Metro", "Train"],
-      category: ["Facility Issue", "Accessibility"],
-      priority: [4]
+      service: ["metro", "tren"],
+      category: ["delays-cancellations", "tickets-fares"],
+      priority: ["2"]
     },
-    priority: 4,
-    frequency: 12,
-    timeRangeStart: "2025-11-18T00:00:00Z",
-    timeRangeEnd: "2025-11-23T12:00:00Z",
-    incidentIds: [
-      "lift001a-bcde-4567-89ab-cdef01234567",
-      "lift002b-cdef-5678-90ab-cdef12345678",
-      "lift003c-def0-6789-01ab-cdef23456789",
-      "lift004d-ef01-7890-12ab-cdef34567890",
-      "lift005e-f012-8901-23ab-cdef45678901",
-      "lift006f-0123-9012-34ab-cdef56789012",
-      "lift007g-1234-0123-45ab-cdef67890123",
-      "lift008h-2345-1234-56ab-cdef78901234",
-      "lift009i-3456-2345-67ab-cdef89012345",
-      "lift010j-4567-3456-78ab-cdef90123456",
-      "lift011k-5678-4567-89ab-cdef01234567",
-      "lift012l-6789-5678-90ab-cdef12345678"
+    priority: 2,
+    frequency: 10,
+    timeRangeStart: "2023-01-08T12:34:00Z",
+    timeRangeEnd: "2025-12-16T17:55:00Z",
+    incident_ids: [
+      "010d6d62-1ba8-46bb-9c92-71e38aa82636",
+      "047ce056-bc14-44aa-9aae-3d248ee33236",
+      "05e050f5-9a5d-4b4c-bee4-037c9b725c6a",
+      "07a27d61-b1ed-421a-8446-6eb80932f062",
+      "0b644809-4090-459c-b01f-f38cf18eb743",
+      "0ce29a09-25b5-43fd-87bc-da521d85c39b",
+      "0dd3be41-ca3b-4616-8340-801fbad46383",
+      "10381d4a-6ba7-4cd6-bd8a-fd05f4150d19",
+      "14443e18-f1b0-4256-b457-c960bff9bf8b",
+      "0c9f6fda-efdd-407e-b2fd-596bf7834528"
     ],
     created_at: "2025-11-18T08:00:00Z",
     updated_at: "2025-11-23T11:00:00Z"
   },
   {
     id: "pattern-005",
-    title: "Payment System Failures",
-    description: "Widespread payment terminal failures across multiple stations. Passengers unable to purchase or reload transit cards.",
+    title: "Staff Shortage Causing Service Delays",
+    description: "Recurring delays caused by lack of available staff including missing drivers/conductors. Passengers report significant wait times, service disruptions, and unplanned stops.",
     filters: {
-      service: ["Metro", "Bus", "Train"],
-      category: ["Payment Issue", "Technical Failure"]
+      service: ["metro", "tren"],
+      category: ["delays-cancellations"],
+      subservice: ["conductor"],
+      priority: ["2"]
     },
-    priority: 3,
-    frequency: 9,
-    timeRangeStart: "2025-11-20T09:00:00Z",
-    timeRangeEnd: "2025-11-22T16:00:00Z",
-    incidentIds: [
-      "pay001aa-1111-2222-3333-444455556666",
-      "pay002bb-2222-3333-4444-555566667777",
-      "pay003cc-3333-4444-5555-666677778888",
-      "pay004dd-4444-5555-6666-777788889999",
-      "pay005ee-5555-6666-7777-888899990000",
-      "pay006ff-6666-7777-8888-999900001111",
-      "pay007gg-7777-8888-9999-000011112222",
-      "pay008hh-8888-9999-0000-111122223333",
-      "pay009ii-9999-0000-1111-222233334444"
+    priority: 1,
+    frequency: 7,
+    timeRangeStart: "2024-09-19T06:26:00Z",
+    timeRangeEnd: "2025-11-15T11:15:00Z",
+    incident_ids: [
+      "0450dcce-1bfc-4efc-8334-53e2273f1c0e",
+      "08a74df5-8d46-49d7-a51a-f52ca2b3c424",
+      "0aeb978d-f8bc-4886-8f65-1b6dff3f1618",
+      "11d24ab9-d1a8-4010-ac5f-d972c48a5e85",
+      "002449d4-7250-4c70-af54-818acdc3358a",
+      "12412259-bd91-49a7-b64e-d5d8834607b9",
+      "1252b658-bfa2-4c87-aa39-8075b44081ac"
     ],
     created_at: "2025-11-20T10:00:00Z",
     updated_at: "2025-11-22T15:00:00Z"
   },
   {
     id: "pattern-006",
-    title: "Customer Service Wait Times",
-    description: "Excessive wait times at customer service centers, with reports of 45+ minute waits for basic inquiries.",
+    title: "Pet Travel and Bicycle Transport Confusion",
+    description: "Passengers experiencing confusion about traveling with pets and unclear rules for transporting bicycles on public transport. Lack of clear information and communication.",
     filters: {
-      service: ["Customer Service"],
-      category: ["Wait Time", "Service Quality"]
+      service: ["metro", "tren"],
+      category: ["information-communication"],
+      priority: ["2", "3"]
     },
-    priority: 2,
-    frequency: 7,
-    timeRangeStart: "2025-11-15T10:00:00Z",
-    timeRangeEnd: "2025-11-21T17:00:00Z",
-    incidentIds: [
-      "cs001aaa-1234-5678-9abc-def012345678",
-      "cs002bbb-2345-6789-0abc-def123456789",
-      "cs003ccc-3456-7890-1abc-def234567890",
-      "cs004ddd-4567-8901-2abc-def345678901",
-      "cs005eee-5678-9012-3abc-def456789012",
-      "cs006fff-6789-0123-4abc-def567890123",
-      "cs007ggg-7890-1234-5abc-def678901234"
+    priority: 3,
+    frequency: 6,
+    timeRangeStart: "2023-04-11T18:01:00Z",
+    timeRangeEnd: "2025-10-21T16:06:00Z",
+    incident_ids: [
+      "01663cd9-f323-42e0-bd81-115519d3e7f2",
+      "01a0e29e-1e6b-4cc7-a4df-a066aab77af7",
+      "06f7226b-d25e-4ea9-a5e2-f27b5f6a73fa",
+      "075d6993-fbdf-4019-8afe-587ca0d8a366",
+      "0aa95ef9-f29f-4193-9c99-7242a83b4f49",
+      "0cd886ea-5537-4dd3-a6f1-be3746d37396"
     ],
     created_at: "2025-11-15T12:00:00Z",
     updated_at: "2025-11-21T16:00:00Z"
   }
 ];
-
-// You can also export individual patterns if needed
-export const highPriorityPattern = mockPatterns[2]; // Overcrowding pattern
-export const recentPattern = mockPatterns[4]; // Payment system failures

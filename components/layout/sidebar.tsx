@@ -16,6 +16,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutGrid },
     { href: "/records", label: "Records", icon: Database },
+    { href: "/patterns", label: "Patterns", icon: Network },
     { href: "/settings", label: "Settings", icon: Settings },
   ]
 

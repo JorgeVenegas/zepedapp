@@ -51,41 +51,60 @@ function generateTitle(
   // Select top 2-3 most meaningful keywords
   const meaningfulKeywords = topKeywords.slice(0, Math.min(3, maxKeywords));
   
-  // Determine severity indicator
+  // Helper function to format category name
+  const formatCategory = (cat: string) => {
+    return cat
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+  
+  // Helper function to capitalize service name
+  const formatService = (svc: string) => {
+    return svc.charAt(0).toUpperCase() + svc.slice(1);
+  };
+  
+  // Build descriptive title components
+  const formattedCategory = formatCategory(topCategory);
+  const formattedService = formatService(topService);
+  
+  // Determine severity prefix (text only, no emojis)
   let severityPrefix = '';
   if (avgPriority >= 4) {
-    severityPrefix = '🔴 Critical: ';
+    severityPrefix = 'Critical - ';
   } else if (avgPriority >= 3) {
-    severityPrefix = '🟠 High Priority: ';
-  } else if (incidents.length >= 10) {
-    severityPrefix = '⚠️ Frequent: ';
+    severityPrefix = 'High Priority - ';
+  } else if (incidents.length >= 15) {
+    severityPrefix = 'Recurring - ';
   }
   
   // Build natural language title
-  let title = '';
+  let title = severityPrefix;
   
   // Handle multiple services
   if (services.size > 1) {
-    title = `${severityPrefix}${topCategory} issues across ${services.size} services`;
+    title += `Cross-Service ${formattedCategory} Issues`;
   } else {
-    title = `${severityPrefix}${topService} ${topCategory} issues`;
+    title += `${formattedService} ${formattedCategory}`;
   }
   
-  // Add keyword context if available
+  // Add keyword context if available - make it more contextual
   if (meaningfulKeywords.length > 0) {
-    // Create natural phrases from keywords
-    const keywordPhrase = meaningfulKeywords.length === 1 
-      ? meaningfulKeywords[0]
-      : meaningfulKeywords.length === 2
-        ? `${meaningfulKeywords[0]} and ${meaningfulKeywords[1]}`
-        : `${meaningfulKeywords.slice(0, -1).join(', ')}, and ${meaningfulKeywords[meaningfulKeywords.length - 1]}`;
+    // Filter out generic keywords
+    const specificKeywords = meaningfulKeywords.filter(kw => 
+      !['issue', 'problem', 'service', 'help', 'please'].includes(kw.toLowerCase())
+    );
     
-    title += ` related to ${keywordPhrase}`;
-  }
-  
-  // Add frequency indicator for high-volume patterns
-  if (incidents.length >= 20) {
-    title += ` (${incidents.length}+ incidents)`;
+    if (specificKeywords.length > 0) {
+      // Create natural phrases from keywords
+      const keywordPhrase = specificKeywords.length === 1 
+        ? specificKeywords[0]
+        : specificKeywords.length === 2
+          ? `${specificKeywords[0]} and ${specificKeywords[1]}`
+          : specificKeywords.slice(0, 2).join(' & ');
+      
+      title += `: ${keywordPhrase.charAt(0).toUpperCase() + keywordPhrase.slice(1)}`;
+    }
   }
   
   return title;
