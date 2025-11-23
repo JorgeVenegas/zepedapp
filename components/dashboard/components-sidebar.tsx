@@ -15,14 +15,11 @@ interface ComponentsSidebarProps {
 }
 
 const availableComponents = [
-  { id: 'metric', name: 'Metric Card', icon: Activity, description: 'Display key metrics', hoverColor: 'from-blue-500/5 via-blue-400/10 to-blue-500/5', borderColor: 'hover:border-blue-400/80', iconColor: 'text-blue-600', titleColor: 'group-hover:text-blue-600' },
-  { id: 'line-chart', name: 'Line Chart', icon: TrendingUp, description: 'Time series data', hoverColor: 'from-pink-500/5 via-pink-400/10 to-rose-500/5', borderColor: 'hover:border-pink-400/80', iconColor: 'text-pink-600', titleColor: 'group-hover:text-pink-600' },
-  { id: 'bar-chart', name: 'Bar Chart', icon: Activity, description: 'Compare values', hoverColor: 'from-cyan-500/5 via-cyan-400/10 to-cyan-500/5', borderColor: 'hover:border-cyan-400/80', iconColor: 'text-cyan-600', titleColor: 'group-hover:text-cyan-600' },
-  { id: 'pie-chart', name: 'Pie Chart', icon: Activity, description: 'Show proportions', hoverColor: 'from-amber-500/5 via-amber-400/10 to-orange-500/5', borderColor: 'hover:border-amber-400/80', iconColor: 'text-amber-600', titleColor: 'group-hover:text-amber-600' },
-  { id: 'area-chart', name: 'Area Chart', icon: TrendingUp, description: 'Stacked trends', hoverColor: 'from-indigo-500/5 via-indigo-400/10 to-indigo-500/5', borderColor: 'hover:border-indigo-400/80', iconColor: 'text-indigo-600', titleColor: 'group-hover:text-indigo-600' },
-  { id: 'radar-chart', name: 'Radar Chart', icon: Activity, description: 'Multi-variable data', hoverColor: 'from-fuchsia-500/5 via-fuchsia-400/10 to-fuchsia-500/5', borderColor: 'hover:border-fuchsia-400/80', iconColor: 'text-fuchsia-600', titleColor: 'group-hover:text-fuchsia-600' },
-  { id: 'alerts', name: 'Alerts Panel', icon: AlertTriangle, description: 'Recent alerts', hoverColor: 'from-red-500/5 via-red-400/10 to-red-500/5', borderColor: 'hover:border-red-400/80', iconColor: 'text-red-600', titleColor: 'group-hover:text-red-600' },
-  { id: 'patterns', name: 'Patterns Table', icon: Activity, description: 'Pattern analysis', hoverColor: 'from-slate-500/5 via-slate-400/10 to-slate-500/5', borderColor: 'hover:border-slate-400/80', iconColor: 'text-slate-600', titleColor: 'group-hover:text-slate-600' },
+  { id: 'top-patterns', name: 'Top Patterns', icon: Activity, description: 'Top patterns analysis', hoverColor: 'from-slate-500/5 via-slate-400/10 to-slate-500/5', borderColor: 'hover:border-slate-400/80', iconColor: 'text-slate-600', titleColor: 'group-hover:text-slate-600' },
+  { id: 'records-timeseries', name: 'Records Timeseries', icon: TrendingUp, description: 'Records over time', hoverColor: 'from-emerald-500/5 via-emerald-400/10 to-emerald-500/5', borderColor: 'hover:border-emerald-400/80', iconColor: 'text-emerald-600', titleColor: 'group-hover:text-emerald-600' },
+  { id: 'records-bar-chart', name: 'Records Bar Chart', icon: Activity, description: 'Records distribution', hoverColor: 'from-violet-500/5 via-violet-400/10 to-violet-500/5', borderColor: 'hover:border-violet-400/80', iconColor: 'text-violet-600', titleColor: 'group-hover:text-violet-600' },
+  { id: 'records-pie-chart', name: 'Records Pie Chart', icon: Activity, description: 'Records breakdown', hoverColor: 'from-orange-500/5 via-orange-400/10 to-orange-500/5', borderColor: 'hover:border-orange-400/80', iconColor: 'text-orange-600', titleColor: 'group-hover:text-orange-600' },
+  { id: 'records-treemap', name: 'Records Treemap', icon: Activity, description: 'Records hierarchy', hoverColor: 'from-teal-500/5 via-teal-400/10 to-teal-500/5', borderColor: 'hover:border-teal-400/80', iconColor: 'text-teal-600', titleColor: 'group-hover:text-teal-600' },
 ]
 
 const DATA_TRANSFER_TYPE = "application/zepedapp-component"

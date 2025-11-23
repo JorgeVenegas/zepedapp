@@ -18,6 +18,7 @@ interface RecordsGraphicsProps {
   dateRange?: string
   onToggleActionMenu?: () => void
   isActionMenuCollapsed?: boolean
+  showControls?: boolean
 }
 
 interface TooltipData {
@@ -27,7 +28,7 @@ interface TooltipData {
   show: boolean
 }
 
-export function RecordsGraphics({ filters, graphicType, groupBy, dateRange, onToggleActionMenu, isActionMenuCollapsed }: RecordsGraphicsProps) {
+export function RecordsGraphics({ filters, graphicType, groupBy, dateRange, onToggleActionMenu, isActionMenuCollapsed, showControls = true }: RecordsGraphicsProps) {
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -415,26 +416,28 @@ export function RecordsGraphics({ filters, graphicType, groupBy, dateRange, onTo
   }
 
   const renderGraphicControls = () => (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setIsFullscreen(!isFullscreen)}
-        className="rounded-full shadow-md hover:shadow-lg transition-all"
-      >
-        <Maximize2 className="w-4 h-4 mr-2" />
-        {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
-      </Button>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setShowSaveModal(true)}
-        className="rounded-full shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200"
-      >
-        <Save className="w-4 h-4 mr-2" />
-        Save Graphic
-      </Button>
-    </div>
+    showControls ? (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className="rounded-full shadow-md hover:shadow-lg transition-all"
+        >
+          <Maximize2 className="w-4 h-4 mr-2" />
+          {isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowSaveModal(true)}
+          className="rounded-full shadow-md hover:shadow-lg transition-all bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200"
+        >
+          <Save className="w-4 h-4 mr-2" />
+          Save Graphic
+        </Button>
+      </div>
+    ) : null
   )
 
   if (loading) {
@@ -1199,15 +1202,15 @@ export function RecordsGraphics({ filters, graphicType, groupBy, dateRange, onTo
     }
 
     const chartContent = (
-      <Card className={`bg-white overflow-auto shadow-sm ${isFullscreen ? 'h-screen border-0 rounded-none' : 'h-full border border-slate-200'}`}>
-        <CardHeader className="flex flex-row items-center justify-between py-4">
+      <Card className={`bg-white overflow-hidden shadow-sm flex flex-col ${isFullscreen ? 'h-screen border-0 rounded-none' : 'h-full border border-slate-200'}`}>
+        <CardHeader className="flex flex-row items-center justify-between py-4 shrink-0">
           <div>
             <CardTitle className="text-sm font-semibold text-slate-700">Distribution by {getGroupByLabel(groupBy)}</CardTitle>
             <CardDescription className="text-xs text-slate-500">Proportional breakdown</CardDescription>
           </div>
           {renderGraphicControls()}
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 min-h-0">
           {hasNestedData ? (
             // Use Nivo for nested pie charts
             <NestedPieChart
@@ -1245,38 +1248,42 @@ export function RecordsGraphics({ filters, graphicType, groupBy, dateRange, onTo
             />
           ) : (
             // Use Recharts for simple pie charts
-            <ChartContainer config={chartConfig} className="h-[400px] w-full">
-              <RechartsPieChart>
-                <ChartTooltip 
-                  content={({ active, payload }: any) => {
-                    if (active && payload && payload.length) {
-                      const data = payload[0].payload
-                      return (
-                        <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-xl text-xs">
-                          <div className="font-semibold">{data.name}</div>
-                          <div>{data.value} incident{data.value !== 1 ? 's' : ''}</div>
-                          <div>{data.percentage}%</div>
-                        </div>
-                      )
-                    }
-                    return null
-                  }}
-                />
-                <Pie
-                  data={data}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={120}
-                  paddingAngle={2}
-                >
-                  {(data as any[]).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getCategoryColor(chartConfig, entry.name, index)} />
-                  ))}
+            <ChartContainer config={chartConfig} className="h-full w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <ChartTooltip 
+                    content={({ active, payload }: any) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload
+                        return (
+                          <div className="bg-slate-900 text-white px-3 py-2 rounded-lg shadow-xl text-xs">
+                            <div className="font-semibold">{data.name}</div>
+                            <div>{data.value} incident{data.value !== 1 ? 's' : ''}</div>
+                            <div>{data.percentage}%</div>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Pie
+                    data={data}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius="20%"
+                    outerRadius="80%"
+                    paddingAngle={2}
+                    label={({ name, percentage }) => `${name} (${percentage}%)`}
+                    labelLine={false}
+                  >
+                    {(data as any[]).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={getCategoryColor(chartConfig, entry.name, index)} />
+                    ))}
                 </Pie>
               </RechartsPieChart>
+              </ResponsiveContainer>
             </ChartContainer>
           )}
           <div className="mt-4 flex flex-wrap gap-4 justify-center">

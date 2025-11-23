@@ -152,7 +152,164 @@ export function ComponentPreview({ componentId }: ComponentPreviewProps) {
           </div>
         )}
 
-        {!['metric','line-chart','bar-chart','pie-chart','area-chart','radar-chart','alerts','patterns'].includes(componentId) && (
+        {componentId === 'records-timeseries' && (
+          <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-emerald-600 font-semibold">Records Timeline</div>
+            <svg className="w-full h-16" viewBox="0 0 200 100">
+              <defs>
+                <linearGradient id="records-area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.6" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 0,80 L 25,65 L 50,70 L 75,50 L 100,55 L 125,40 L 150,45 L 175,35 L 200,30 L 200,100 L 0,100 Z"
+                fill="url(#records-area)"
+              />
+              <polyline
+                points="0,80 25,65 50,70 75,50 100,55 125,40 150,45 175,35 200,30"
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+        )}
+
+        {componentId === 'records-bar-chart' && (
+          <div className="w-full h-full bg-gradient-to-br from-violet-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-violet-600 font-semibold">Records Bars</div>
+            <svg className="w-full h-16" viewBox="0 0 200 100">
+              <defs>
+                <linearGradient id="records-bar-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.8" />
+                </linearGradient>
+              </defs>
+              {[65, 45, 80, 55, 70].map((height, i) => {
+                const width = 22
+                const gap = 14
+                const x = 12 + i * (width + gap)
+                return <rect key={i} x={x} y={100 - height} width={width} height={height} fill="url(#records-bar-gradient)" rx="4" />
+              })}
+            </svg>
+          </div>
+        )}
+
+        {componentId === 'records-pie-chart' && (
+          <div className="w-full h-full bg-gradient-to-br from-orange-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-orange-600 font-semibold">Records Pie</div>
+            <div className="w-full flex items-center justify-center">
+              <svg className="w-18 h-18" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="35" fill="#fed7aa" />
+                <path d="M 50 50 L 50 15 A 35 35 0 0 1 80 65 Z" fill="#f97316" />
+                <path d="M 50 50 L 80 65 A 35 35 0 0 1 30 80 Z" fill="#ea580c" />
+                <path d="M 50 50 L 30 80 A 35 35 0 0 1 35 25 Z" fill="#fb923c" />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {componentId === 'records-treemap' && (
+          <div className="w-full h-full bg-gradient-to-br from-teal-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-teal-600 font-semibold">Records Tree</div>
+            <svg className="w-full h-16" viewBox="0 0 200 100">
+              <defs>
+                <linearGradient id="treemap1" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#14b8a6" />
+                  <stop offset="100%" stopColor="#0d9488" />
+                </linearGradient>
+                <linearGradient id="treemap2" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#2dd4bf" />
+                  <stop offset="100%" stopColor="#14b8a6" />
+                </linearGradient>
+                <linearGradient id="treemap3" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#5eead4" />
+                  <stop offset="100%" stopColor="#2dd4bf" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="80" height="40" fill="url(#treemap1)" rx="4" />
+              <rect x="100" y="10" width="40" height="40" fill="url(#treemap2)" rx="4" />
+              <rect x="150" y="10" width="40" height="40" fill="url(#treemap3)" rx="4" />
+              <rect x="10" y="60" width="50" height="30" fill="url(#treemap2)" rx="4" />
+              <rect x="70" y="60" width="70" height="30" fill="url(#treemap1)" rx="4" />
+              <rect x="150" y="60" width="40" height="30" fill="url(#treemap3)" rx="4" />
+            </svg>
+          </div>
+        )}
+
+        {componentId === 'records-timeseries' && (
+          <div className="w-full h-full bg-gradient-to-br from-emerald-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-emerald-600 font-semibold">Records Timeseries</div>
+            <svg className="w-full h-16" viewBox="0 0 200 100">
+              <defs>
+                <linearGradient id="records-timeseries" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity="0.4" />
+                  <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 0,80 L 40,60 L 80,70 L 120,45 L 160,55 L 200,35 L 200,100 L 0,100 Z"
+                fill="url(#records-timeseries)"
+              />
+              <polyline
+                points="0,80 40,60 80,70 120,45 160,55 200,35"
+                fill="none"
+                stroke="#10b981"
+                strokeWidth="2"
+              />
+            </svg>
+          </div>
+        )}
+
+        {componentId === 'records-bar-chart' && (
+          <div className="w-full h-full bg-gradient-to-br from-violet-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-violet-600 font-semibold">Records Bar Chart</div>
+            <svg className="w-full h-16" viewBox="0 0 200 100">
+              <defs>
+                <linearGradient id="records-bar-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="1" />
+                  <stop offset="100%" stopColor="#7c3aed" stopOpacity="0.8" />
+                </linearGradient>
+              </defs>
+              {[55, 75, 40, 85, 60].map((height, i) => {
+                const width = 28
+                const gap = 8
+                const x = 10 + i * (width + gap)
+                return <rect key={i} x={x} y={100 - height} width={width} height={height} fill="url(#records-bar-gradient)" rx="4" />
+              })}
+            </svg>
+          </div>
+        )}
+
+        {componentId === 'records-pie-chart' && (
+          <div className="w-full h-full bg-gradient-to-br from-orange-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-orange-600 font-semibold">Records Pie Chart</div>
+            <div className="w-full flex items-center justify-center">
+              <svg className="w-18 h-18" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="35" fill="#fed7aa" />
+                <path d="M 50 50 L 50 15 A 35 35 0 0 1 80 60 Z" fill="#f97316" />
+                <path d="M 50 50 L 80 60 A 35 35 0 0 1 30 80 Z" fill="#ea580c" />
+                <path d="M 50 50 L 30 80 A 35 35 0 0 1 50 15 Z" fill="#fb923c" />
+              </svg>
+            </div>
+          </div>
+        )}
+
+        {componentId === 'records-treemap' && (
+          <div className="w-full h-full bg-gradient-to-br from-teal-50 to-white rounded-lg p-2 shadow-sm">
+            <div className="text-[11px] uppercase tracking-wide text-teal-600 font-semibold">Records Treemap</div>
+            <div className="w-full h-16 grid grid-cols-3 gap-1">
+              <div className="bg-teal-400 rounded flex items-center justify-center text-[8px] text-white font-medium">A</div>
+              <div className="bg-teal-500 rounded flex items-center justify-center text-[8px] text-white font-medium">B</div>
+              <div className="bg-teal-300 rounded flex items-center justify-center text-[8px] text-white font-medium">C</div>
+              <div className="bg-teal-600 rounded flex items-center justify-center text-[8px] text-white font-medium col-span-2">D</div>
+              <div className="bg-teal-400 rounded flex items-center justify-center text-[8px] text-white font-medium">E</div>
+            </div>
+          </div>
+        )}
+
+        {!['metric','line-chart','bar-chart','pie-chart','area-chart','radar-chart','alerts','patterns','records-timeseries','records-bar-chart','records-pie-chart','records-treemap'].includes(componentId) && (
           <div className="w-full h-full flex flex-col items-center justify-center text-xs text-muted-foreground">
             <Plus className="w-4 h-4 mb-1" />
             <span>Preview unavailable</span>

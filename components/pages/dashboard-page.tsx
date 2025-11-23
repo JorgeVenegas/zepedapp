@@ -2,31 +2,25 @@
 
 import { useState, useEffect, useRef, type DragEvent } from "react"
 import GridLayout, { Layout } from "react-grid-layout"
-import { MetricCard } from "@/components/dashboard/metric-card"
-import { AlertsPanel } from "@/components/dashboard/alerts-panel"
-import { PatternsTable } from "@/components/dashboard/patterns-table"
-import { LineChartComponent } from "@/components/dashboard/charts/line-chart"
-import { BarChartComponent } from "@/components/dashboard/charts/bar-chart"
-import { PieChartComponent } from "@/components/dashboard/charts/pie-chart"
-import { AreaChartComponent } from "@/components/dashboard/charts/area-chart"
-import { RadarChartComponent } from "@/components/dashboard/charts/radar-chart"
-import { TrendingUp, AlertTriangle, Activity, Zap, Edit3, Eye, Plus, Trash2, Settings } from "lucide-react"
+import { RecordsGraphics } from "@/components/records/records-graphics"
+import { TopPatternsCard } from "@/components/dashboard/top-patterns-card"
+import { RecordsTable } from "@/components/records/records-table"
+import { RecordsFilters } from "@/components/records/records-filters"
+import { RecordsFilterPanel } from "@/components/records/records-filter-panel"
+import { Activity, Edit3, Eye, Plus, Trash2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ComponentsSidebar } from "@/components/dashboard/components-sidebar"
 import type { Pattern } from "@/lib/types"
 
 const INITIAL_GRID_ITEMS = new Set([
-  "metric-1",
-  "metric-2",
-  "metric-3",
-  "metric-4",
-  "line-chart",
-  "alerts",
-  "bar-chart",
-  "pie-chart",
-  "area-chart",
-  "radar-chart",
-  "patterns",
+  "records-timeseries-overview",
+  "records-pie-priority", 
+  "records-bar-service",
+  "records-area-category",
+  "records-line-trends",
+  "records-pie-source",
+  "records-bar-category",
+  "top-patterns",
 ])
 
 export function DashboardPage() {
@@ -35,6 +29,54 @@ export function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [draggingComponentType, setDraggingComponentType] = useState<string | null>(null)
   const [editingComponent, setEditingComponent] = useState<{ id: string; type: string } | null>(null)
+  const [recordsFilters, setRecordsFilters] = useState<Record<string, string[]>>({})
+  const [isRecordsActionMenuCollapsed, setIsRecordsActionMenuCollapsed] = useState(false)
+  const [graphicType, setGraphicType] = useState<'timeseries' | 'topN' | 'barChart' | 'pieChart' | 'areaChart' | 'treemap' | 'lineChart'>('timeseries')
+  const [groupBy, setGroupBy] = useState<string>('service')
+  const [componentConfigs, setComponentConfigs] = useState<Record<string, { graphicType: string; groupBy: string; filters: Record<string, string[]> }>>({
+    'records-timeseries-overview': { graphicType: 'timeseries', groupBy: 'service', filters: {} },
+    'records-pie-priority': { graphicType: 'pieChart', groupBy: 'priority', filters: {} },
+    'records-bar-service': { graphicType: 'barChart', groupBy: 'service', filters: {} },
+    'records-area-category': { graphicType: 'areaChart', groupBy: 'category', filters: {} },
+    'records-line-trends': { graphicType: 'lineChart', groupBy: 'priority', filters: {} },
+    'records-pie-source': { graphicType: 'pieChart', groupBy: 'source', filters: {} },
+    'records-bar-category': { graphicType: 'barChart', groupBy: 'category', filters: {} },
+    'top-patterns': { graphicType: 'patterns', groupBy: 'frequency', filters: {} },
+    'records-bar-chart-1': { graphicType: 'barChart', groupBy: 'category', filters: {} },
+    'records-treemap-1': { graphicType: 'treemap', groupBy: 'service,category', filters: {} }
+  })
+  const [facets, setFacets] = useState<any[]>([
+    {
+      field: 'service',
+      label: 'Service',
+      options: [
+        { value: 'train', count: 45 },
+        { value: 'metro', count: 32 },
+        { value: 'bus', count: 28 }
+      ]
+    },
+    {
+      field: 'priority',
+      label: 'Priority',
+      options: [
+        { value: 'P1', count: 12 },
+        { value: 'P2', count: 23 },
+        { value: 'P3', count: 31 },
+        { value: 'P4', count: 28 },
+        { value: 'P5', count: 11 }
+      ]
+    },
+    {
+      field: 'category',
+      label: 'Category',
+      options: [
+        { value: 'accessibility', count: 18 },
+        { value: 'delays-cancellations', count: 25 },
+        { value: 'lost-items-security', count: 22 },
+        { value: 'information-communication', count: 30 }
+      ]
+    }
+  ])
   const containerRef = useRef<HTMLDivElement>(null)
   const DATA_TRANSFER_TYPE = "application/zepedapp-component"
   const GRID_COLS = 12
@@ -53,6 +95,70 @@ export function DashboardPage() {
     window.addEventListener('resize', updateWidth)
     return () => window.removeEventListener('resize', updateWidth)
   }, [])
+
+  // Fetch facets and load component config when editing a records component
+  useEffect(() => {
+    if (editingComponent?.type?.startsWith('records-')) {
+      fetchFacets()
+      // Load existing configuration if available
+      const config = componentConfigs[editingComponent.id]
+      if (config) {
+        setGraphicType(config.graphicType as any)
+        setGroupBy(config.groupBy)
+        setRecordsFilters(config.filters)
+      } else {
+        // Reset to defaults
+        setGraphicType(editingComponent.type === 'records-bar-chart' ? 'barChart' : 'timeseries')
+        setGroupBy('service')
+        setRecordsFilters({})
+      }
+    }
+  }, [editingComponent, componentConfigs])
+
+  const fetchFacets = async () => {
+    try {
+      const response = await fetch('/api/records/facets')
+      const result = await response.json()
+      if (result.success) {
+        setFacets(result.facets)
+      }
+    } catch (error) {
+      console.error('Error fetching facets:', error)
+      // Provide some default facets if API fails
+      setFacets([
+        {
+          field: 'service',
+          label: 'Service',
+          options: [
+            { value: 'train', count: 45 },
+            { value: 'metro', count: 32 },
+            { value: 'bus', count: 28 }
+          ]
+        },
+        {
+          field: 'priority',
+          label: 'Priority',
+          options: [
+            { value: 'P1', count: 12 },
+            { value: 'P2', count: 23 },
+            { value: 'P3', count: 31 },
+            { value: 'P4', count: 28 },
+            { value: 'P5', count: 11 }
+          ]
+        },
+        {
+          field: 'category',
+          label: 'Category',
+          options: [
+            { value: 'accessibility', count: 18 },
+            { value: 'delays-cancellations', count: 25 },
+            { value: 'lost-items-security', count: 22 },
+            { value: 'information-communication', count: 30 }
+          ]
+        }
+      ])
+    }
+  }
 
   const externalPatterns: Pattern[] = [
     {
@@ -116,6 +222,18 @@ export function DashboardPage() {
     if (componentType === "patterns") {
       return { w: 6, h: 3, minW: 6, minH: 3 }
     }
+    if (componentType === "records-timeseries") {
+      return { w: 8, h: 4, minW: 6, minH: 3 }
+    }
+    if (componentType === "records-bar-chart") {
+      return { w: 6, h: 4, minW: 4, minH: 3 }
+    }
+    if (componentType === "records-pie-chart") {
+      return { w: 6, h: 4, minW: 4, minH: 3 }
+    }
+    if (componentType === "records-treemap") {
+      return { w: 8, h: 4, minW: 6, minH: 3 }
+    }
     if (componentType) {
       return { w: 4, h: 3, minW: 4, minH: 3 }
     }
@@ -133,20 +251,19 @@ export function DashboardPage() {
   }
 
   const [layout, setLayout] = useState<Layout[]>([
-    // Metrics row
-    { i: "metric-1", x: 0, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
-    { i: "metric-2", x: 3, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
-    { i: "metric-3", x: 6, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
-    { i: "metric-4", x: 9, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
+    // Top row - patterns and priority chart
+    { i: "top-patterns", x: 0, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-pie-priority", x: 6, y: 0, w: 6, h: 5, minW: 4, minH: 4 },
 
-    // Charts
-    { i: "line-chart", x: 0, y: 2, w: 8, h: 4, minW: 4, minH: 3 },
-    { i: "alerts", x: 8, y: 2, w: 4, h: 4, minW: 3, minH: 3 },
-    { i: "bar-chart", x: 0, y: 6, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "pie-chart", x: 6, y: 6, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "area-chart", x: 0, y: 10, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "radar-chart", x: 6, y: 10, w: 6, h: 4, minW: 4, minH: 3 },
-    { i: "patterns", x: 0, y: 14, w: 12, h: 4, minW: 6, minH: 3 },
+    // Records Analytics - Comprehensive Dashboard (bigger sizes)
+    { i: "records-timeseries-overview", x: 0, y: 5, w: 12, h: 5, minW: 8, minH: 4 },
+    { i: "records-bar-service", x: 0, y: 10, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-area-category", x: 6, y: 10, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-line-trends", x: 0, y: 15, w: 6, h: 5, minW: 4, minH: 4 },
+    
+    // Additional analytics (bigger sizes)
+    { i: "records-pie-source", x: 6, y: 15, w: 6, h: 5, minW: 4, minH: 4 },
+    { i: "records-bar-category", x: 0, y: 20, w: 6, h: 5, minW: 4, minH: 4 },
   ])
 
   const onLayoutChange = (newLayout: Layout[]) => {
@@ -156,14 +273,11 @@ export function DashboardPage() {
   }
 
   const getComponentTypeFromKey = (key: string) => {
-    if (key.startsWith("metric")) return "metric"
-    if (key.startsWith("line-chart")) return "line-chart"
-    if (key.startsWith("bar-chart")) return "bar-chart"
-    if (key.startsWith("pie-chart")) return "pie-chart"
-    if (key.startsWith("area-chart")) return "area-chart"
-    if (key.startsWith("radar-chart")) return "radar-chart"
-    if (key.startsWith("alerts")) return "alerts"
-    if (key.startsWith("patterns")) return "patterns"
+    if (key.startsWith("top-patterns")) return "top-patterns"
+    if (key.startsWith("records-timeseries")) return "records-timeseries"
+    if (key.startsWith("records-bar-chart")) return "records-bar-chart"
+    if (key.startsWith("records-pie-chart")) return "records-pie-chart"
+    if (key.startsWith("records-treemap")) return "records-treemap"
     return key
   }
 
@@ -172,100 +286,198 @@ export function DashboardPage() {
     const metricContainerStyle = "h-full w-full flex flex-col"
     const componentType = getComponentTypeFromKey(key)
 
-    if (componentType === "metric") {
-      const metricContentMap: Record<string, { title: string; value: string; icon: any; trend?: string; trendPositive?: boolean }> = {
-        "metric-1": { title: "Active Records", value: "2,847", icon: Activity, trend: "+12.5%", trendPositive: true },
-        "metric-2": { title: "Processing Rate", value: "94.2%", icon: TrendingUp, trend: "+2.1%", trendPositive: true },
-        "metric-3": { title: "Alerts Today", value: "23", icon: AlertTriangle, trend: "+5", trendPositive: false },
-        "metric-4": { title: "API Calls", value: "45.2K", icon: Zap, trend: "+8.3%", trendPositive: true },
-      }
-      const metricConfig = metricContentMap[key] ?? { title: "Metric 1", value: "1,234", icon: Activity, trend: "+0%", trendPositive: true }
+
+
+
+
+    if (componentType === "top-patterns") {
+      const config = componentConfigs[key] || { graphicType: 'patterns', groupBy: 'frequency', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
+      
       return (
-        <div className={metricContainerStyle}>
-          <div className="flex-1 w-full">
-            <MetricCard
-              title={metricConfig.title}
-              value={metricConfig.value}
-              icon={metricConfig.icon}
-              trend={metricConfig.trend}
-              trendPositive={metricConfig.trendPositive}
-            />
-          </div>
+        <div className="h-full w-full p-4" style={{ minHeight: '300px' }}>
+          <TopPatternsCard
+            key={configKey}
+            title="Top Patterns"
+            filters={config.filters}
+          />
         </div>
       )
     }
 
-    if (componentType === "line-chart") {
-      const useSample = !INITIAL_GRID_ITEMS.has(key)
+    if (componentType === "records-timeseries") {
+      const config = componentConfigs[key] || { graphicType: 'timeseries', groupBy: 'service', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <LineChartComponent variant={useSample ? "sample" : "default"} />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
 
-    if (componentType === "alerts") {
+    if (componentType === "records-bar-chart") {
+      const config = componentConfigs[key] || { graphicType: 'barChart', groupBy: 'service', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <AlertsPanel />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
 
-    if (componentType === "bar-chart") {
-      const useSample = !INITIAL_GRID_ITEMS.has(key)
+    if (componentType === "records-pie-chart") {
+      const config = componentConfigs[key] || { graphicType: 'pieChart', groupBy: 'service', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <BarChartComponent variant={useSample ? "sample" : "default"} />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
 
-    if (componentType === "pie-chart") {
-      const useSample = !INITIAL_GRID_ITEMS.has(key)
+    if (componentType === "records-treemap") {
+      const config = componentConfigs[key] || { graphicType: 'treemap', groupBy: 'service', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <PieChartComponent variant={useSample ? "sample" : "default"} />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
 
-    if (componentType === "area-chart") {
-      const useSample = !INITIAL_GRID_ITEMS.has(key)
+    // New specific records analytics components
+    if (componentType === "records-timeseries-overview") {
+      const config = componentConfigs[key] || { graphicType: 'timeseries', groupBy: 'service', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <AreaChartComponent variant={useSample ? "sample" : "default"} />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
 
-    if (componentType === "radar-chart") {
-      const useSample = !INITIAL_GRID_ITEMS.has(key)
+    if (componentType === "records-pie-priority") {
+      const config = componentConfigs[key] || { graphicType: 'pieChart', groupBy: 'priority', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <RadarChartComponent variant={useSample ? "sample" : "default"} />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
 
-    if (componentType === "patterns") {
+    if (componentType === "records-bar-service") {
+      const config = componentConfigs[key] || { graphicType: 'barChart', groupBy: 'service', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
       return (
-        <div className={containerStyle} style={{ minHeight: '200px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
-            <PatternsTable title="Top External Patterns (Twitter)" patterns={externalPatterns} type="external" />
-          </div>
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
+        </div>
+      )
+    }
+
+    if (componentType === "records-area-category") {
+      const config = componentConfigs[key] || { graphicType: 'areaChart', groupBy: 'category', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
+      return (
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
+        </div>
+      )
+    }
+
+    if (componentType === "records-line-trends") {
+      const config = componentConfigs[key] || { graphicType: 'lineChart', groupBy: 'priority', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
+      return (
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
+        </div>
+      )
+    }
+
+    if (componentType === "records-pie-source") {
+      const config = componentConfigs[key] || { graphicType: 'pieChart', groupBy: 'source', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
+      return (
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
+        </div>
+      )
+    }
+
+    if (componentType === "records-bar-category") {
+      const config = componentConfigs[key] || { graphicType: 'barChart', groupBy: 'category', filters: {} }
+      const configKey = `${key}-${config.graphicType}-${config.groupBy}-${JSON.stringify(config.filters)}`
+      return (
+        <div className="h-full w-full overflow-hidden" style={{ minHeight: '200px' }}>
+          <RecordsGraphics 
+            key={configKey}
+            graphicType={config.graphicType as any} 
+            groupBy={config.groupBy} 
+            filters={config.filters}
+            showControls={false}
+          />
         </div>
       )
     }
@@ -701,8 +913,12 @@ export function DashboardPage() {
 
       {/* Edit Component Modal */}
       {editingComponent && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className={`bg-white rounded-2xl shadow-2xl w-full overflow-hidden animate-in zoom-in-95 duration-200 ${
+          editingComponent?.type?.startsWith('records-') || editingComponent?.type === 'top-patterns'
+            ? 'max-w-5xl max-h-[85vh]' 
+            : 'max-w-2xl max-h-[80vh]'
+        }`}>
             {/* Modal Header */}
             <div className="bg-gradient-to-r from-red-600 via-rose-500 to-red-600 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -720,28 +936,107 @@ export function DashboardPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
-              <div className="space-y-4">
-                <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-sm text-slate-700 flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-red-600" />
-                    <span className="font-semibold">Component ID:</span> {editingComponent.id}
-                  </p>
-                </div>
+            <div className={`overflow-y-auto ${
+              editingComponent?.type?.startsWith('records-') || editingComponent?.type === 'top-patterns'
+                ? 'max-h-[calc(85vh-140px)]' 
+                : 'max-h-[calc(80vh-140px)]'
+            }`}>
+              {editingComponent?.type?.startsWith('records-') || editingComponent?.type === 'top-patterns' ? (
+                <div className="h-full overflow-hidden bg-gradient-to-br from-red-50/30 via-slate-50 to-rose-50/20 relative flex flex-col">
+                  {/* Animated background pattern */}
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(239,68,68,0.04),transparent_50%)] pointer-events-none"></div>
+                  <div className="absolute inset-0 bg-[linear-gradient(to_right,#fef2f2_1px,transparent_1px),linear-gradient(to_bottom,#fef2f2_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
-                <div className="space-y-3">
-                  <label className="block text-sm font-semibold text-slate-700">Component Settings</label>
-                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                    <p className="text-sm text-slate-600 text-center py-8">
-                      Component configuration options will be available here based on the component type.
-                      <br />
-                      <span className="text-xs text-slate-500 mt-2 block">
-                        This feature allows you to customize data sources, display settings, and other component-specific options.
-                      </span>
-                    </p>
+                  <style jsx global>{`
+                    @keyframes gradient {
+                      0%, 100% { background-position: 0% 50%; }
+                      50% { background-position: 100% 50%; }
+                    }
+                    .animate-gradient {
+                      animation: gradient 3s ease infinite;
+                    }
+                  `}</style>
+
+
+
+                  <div className="px-4 pt-4 pb-3 relative z-20">
+                    <RecordsFilters
+                      onFiltersChange={setRecordsFilters}
+                      onToggleActionMenu={() => setIsRecordsActionMenuCollapsed(!isRecordsActionMenuCollapsed)}
+                      isActionMenuCollapsed={isRecordsActionMenuCollapsed}
+                      visualizationMode="graphic"
+                      onVisualizationModeChange={() => {}}
+                      graphicType={graphicType}
+                      onGraphicTypeChange={setGraphicType}
+                      groupBy={groupBy}
+                      onGroupByChange={setGroupBy}
+                      dateRange="Last 2 years"
+                    />
+                  </div>
+
+                  <div className="flex-1 flex overflow-hidden relative z-10 min-h-0 px-4 pb-4">
+                    <RecordsFilterPanel
+                      onFiltersChange={setRecordsFilters}
+                      isCollapsed={isRecordsActionMenuCollapsed}
+                      facets={facets}
+                      loading={false}
+                      selectedFilters={recordsFilters}
+                    />
+                    <div className="flex-1 overflow-hidden min-w-0 flex flex-col">
+                      <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-4 mb-4">
+                        <h3 className="text-lg font-semibold text-slate-800 mb-2">Chart Preview</h3>
+                        <p className="text-sm text-slate-600 mb-4">Preview of how your chart will look with current filters and settings</p>
+                        <div className="h-80 w-full border border-slate-200 rounded-lg overflow-hidden">
+                          <RecordsGraphics
+                            filters={recordsFilters}
+                            graphicType={graphicType}
+                            groupBy={groupBy}
+                            dateRange="Last 2 years"
+                            showControls={false}
+                          />
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 rounded-lg p-4">
+                        <h4 className="text-sm font-semibold text-slate-700 mb-2">Chart Configuration</h4>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div>
+                            <span className="font-medium text-slate-600">Type:</span>
+                            <span className="ml-2 text-slate-800 capitalize">{graphicType}</span>
+                          </div>
+                          <div>
+                            <span className="font-medium text-slate-600">Group by:</span>
+                            <span className="ml-2 text-slate-800 capitalize">{groupBy}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="p-6">
+                  <div className="space-y-4">
+                    <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-200 rounded-lg p-4">
+                      <p className="text-sm text-slate-700 flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-red-600" />
+                        <span className="font-semibold">Component ID:</span> {editingComponent.id}
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <label className="block text-sm font-semibold text-slate-700">Component Settings</label>
+                      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                        <p className="text-sm text-slate-600 text-center py-8">
+                          Component configuration options will be available here based on the component type.
+                          <br />
+                          <span className="text-xs text-slate-500 mt-2 block">
+                            This feature allows you to customize data sources, display settings, and other component-specific options.
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Modal Footer */}
@@ -755,7 +1050,21 @@ export function DashboardPage() {
               </Button>
               <Button
                 onClick={() => {
-                  // Save logic here
+                  if (editingComponent && (editingComponent.type.startsWith('records-') || editingComponent.type === 'top-patterns')) {
+                    const newConfig = {
+                      graphicType: editingComponent.type === 'top-patterns' ? 'patterns' : graphicType,
+                      groupBy,
+                      filters: { ...recordsFilters }
+                    }
+                    setComponentConfigs(prev => {
+                      const updated = {
+                        ...prev,
+                        [editingComponent.id]: newConfig
+                      }
+                      console.log('Updating config for', editingComponent.id, newConfig)
+                      return updated
+                    })
+                  }
                   setEditingComponent(null)
                 }}
                 className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg"
