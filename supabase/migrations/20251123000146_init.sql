@@ -1,7 +1,7 @@
 
   create table "public"."incidents" (
     "id" uuid not null default gen_random_uuid(),
-    "time" timestamp with time zone not null,
+    "time" timestamp not null,
     "service" text not null,
     "source" text not null,
     "subservice" text not null,
@@ -82,7 +82,7 @@ alter table "public"."patterns" add constraint "patterns_pkey" PRIMARY KEY using
 
 alter table "public"."solutions" add constraint "solutions_pkey" PRIMARY KEY using index "solutions_pkey";
 
-alter table "public"."incidents" add constraint "incidents_priority_check" CHECK (((priority >= 1) AND (priority <= 5))) not valid;
+alter table "public"."incidents" add constraint "incidents_priority_check" CHECK (((priority >= 0) AND (priority <= 5))) not valid;
 
 alter table "public"."incidents" validate constraint "incidents_priority_check";
 

@@ -9,9 +9,14 @@ import { Incident } from "@/lib/types"
 
 interface RecordsTableProps {
   filters?: Record<string, string[]>
+  totalCount?: number
+  onToggleActionMenu?: () => void
+  isActionMenuCollapsed?: boolean
+  dateRange?: string
+  onTotalCountChange?: (count: number) => void
 }
 
-export function RecordsTable({ filters }: RecordsTableProps) {
+export function RecordsTable({ filters, totalCount, onToggleActionMenu, isActionMenuCollapsed, dateRange, onTotalCountChange }: RecordsTableProps) {
   const [incidents, setIncidents] = useState<Incident[]>([])
   const [loading, setLoading] = useState(true)
   const [hasMore, setHasMore] = useState(true)
@@ -24,21 +29,20 @@ export function RecordsTable({ filters }: RecordsTableProps) {
     setIncidents([])
     setPage(1)
     setHasMore(true)
-  }, [filters])
+  }, [filters, dateRange])
 
-  useEffect(() => {
-    fetchIncidents()
-  }, [filters, page])
-
-  const fetchIncidents = async () => {
-    if (!hasMore && page > 1) return
-    
+  const fetchIncidents = useCallback(async () => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
         page: page.toString(),
         pageSize: pageSize.toString(),
       })
+
+      // Add date range filter
+      if (dateRange) {
+        params.append('dateRange', dateRange)
+      }
 
       // Add multiple values for each filter field
       if (filters) {
@@ -61,6 +65,11 @@ export function RecordsTable({ filters }: RecordsTableProps) {
           setIncidents(prev => [...prev, ...newIncidents])
         }
         
+        // Update total count from filtered results
+        if (onTotalCountChange && result.pagination.total !== undefined) {
+          onTotalCountChange(result.pagination.total)
+        }
+        
         // Check if there are more pages
         setHasMore(page < result.pagination.totalPages)
       }
@@ -69,7 +78,11 @@ export function RecordsTable({ filters }: RecordsTableProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters, page, dateRange, onTotalCountChange])
+
+  useEffect(() => {
+    fetchIncidents()
+  }, [fetchIncidents])
 
   // Infinite scroll observer
   useEffect(() => {
@@ -132,7 +145,25 @@ export function RecordsTable({ filters }: RecordsTableProps) {
   }
 
   return (
-    <Card className="bg-white border border-slate-200 overflow-hidden h-full flex flex-col shadow-sm">
+    <div className="h-full flex flex-col">
+      {/* Header with action menu toggle and total count */}
+      {onToggleActionMenu && (
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={onToggleActionMenu}
+            className="px-3 py-1.5 text-xs font-medium rounded-md transition-all bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200"
+          >
+            {isActionMenuCollapsed ? "Show" : "Hide"} filters
+          </button>
+          {totalCount !== undefined && (
+            <div className="text-xs text-slate-600">
+              <span className="font-semibold text-slate-700">{totalCount.toLocaleString()}</span> total records
+            </div>
+          )}
+        </div>
+      )}
+      
+      <Card className="bg-white border border-slate-200 overflow-hidden flex-1 flex flex-col shadow-sm">
       <div className="flex-1 overflow-auto">
         <table className="w-full">
           <thead className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-slate-200">
@@ -187,5 +218,6 @@ export function RecordsTable({ filters }: RecordsTableProps) {
         </div>
       </div>
     </Card>
+    </div>
   )
 }
