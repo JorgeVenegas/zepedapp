@@ -244,7 +244,7 @@ export function RecordsFilters({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="h-[52px] px-5 border-2 border-slate-200 rounded-full bg-gradient-to-br from-white via-slate-50 to-white hover:border-blue-300 hover:shadow-xl hover:scale-[1.02] shadow-lg shadow-slate-200/30 transition-all duration-300 backdrop-blur-sm whitespace-nowrap"
+                className="h-[52px] px-5 border-2 border-slate-200 rounded-full bg-gradient-to-br from-white via-slate-50 to-white hover:border-red-300 hover:shadow-xl hover:scale-[1.02] shadow-lg shadow-slate-200/30 transition-all duration-300 backdrop-blur-sm whitespace-nowrap"
               >
                 <CalendarIcon className="w-4 h-4 mr-2 text-slate-500" />
                 <span className="text-sm font-medium text-slate-700">{formatDateRangeDisplay(dateRange)}</span>
@@ -259,7 +259,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last 15 minutes");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last 15 minutes
                 </button>
@@ -269,7 +269,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last hour");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last hour
                 </button>
@@ -279,7 +279,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last 4 hours");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last 4 hours
                 </button>
@@ -289,7 +289,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last 24 hours");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last 24 hours
                 </button>
@@ -299,7 +299,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last 7 days");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last 7 days
                 </button>
@@ -309,7 +309,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last 30 days");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last 30 days
                 </button>
@@ -319,7 +319,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     onDateRangeChange?.("Last 90 days");
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200"
                 >
                   Last 90 days
                 </button>
@@ -329,7 +329,7 @@ export function RecordsFilters({
                     setShowDatePicker(false);
                     setShowCustomPicker(true);
                   }}
-                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 hover:text-blue-700 hover:shadow-md transition-all duration-200 font-medium"
+                  className="w-full text-left px-3 py-2 text-sm rounded-full hover:bg-gradient-to-r hover:from-rose-50 hover:to-red-100 hover:text-red-700 hover:shadow-md transition-all duration-200 font-medium"
                 >
                   Custom range...
                 </button>
@@ -338,7 +338,7 @@ export function RecordsFilters({
           </DropdownMenu>
 
           <div className="relative flex-1">
-          <div className="flex items-center gap-2 px-4 py-3 border-2 border-slate-200 rounded-3xl bg-gradient-to-r from-white to-slate-50 focus-within:ring-2 focus-within:ring-blue-300 focus-within:border-blue-400 shadow-lg shadow-slate-200/20 transition-all duration-300 backdrop-blur-sm">
+          <div className="flex items-center gap-2 px-4 py-3 border-2 border-slate-200 rounded-3xl bg-gradient-to-r from-white to-slate-50 focus-within:ring-2 focus-within:ring-red-300 focus-within:border-red-400 shadow-lg shadow-slate-200/20 transition-all duration-300 backdrop-blur-sm">
             <Search className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             
             <div className="flex flex-wrap items-center gap-1.5 flex-1">
@@ -430,14 +430,14 @@ export function RecordsFilters({
 
         {/* Visualization Mode Selector */}
         {onVisualizationModeChange && (
-          <div className="flex flex-col gap-3 pt-4 border-t border-slate-200">
+          <div className="flex flex-col gap-3 pt-4">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-500 font-medium">View:</span>
               <button
                 onClick={() => onVisualizationModeChange('records')}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all duration-300 ${
                   visualizationMode === 'records'
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    ? 'bg-gradient-to-br from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
                     : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-slate-200 hover:to-slate-300 hover:shadow-md hover:scale-105'
                 }`}
               >
@@ -447,7 +447,7 @@ export function RecordsFilters({
                 onClick={() => onVisualizationModeChange('patterns')}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all duration-300 ${
                   visualizationMode === 'patterns'
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    ? 'bg-gradient-to-br from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
                     : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-slate-200 hover:to-slate-300 hover:shadow-md hover:scale-105'
                 }`}
               >
@@ -457,7 +457,7 @@ export function RecordsFilters({
                 onClick={() => onVisualizationModeChange('graphic')}
                 className={`px-4 py-2 text-xs font-semibold rounded-full transition-all duration-300 ${
                   visualizationMode === 'graphic'
-                    ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
+                    ? 'bg-gradient-to-br from-red-600 to-red-700 text-white shadow-lg hover:shadow-xl hover:scale-105'
                     : 'bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-slate-200 hover:to-slate-300 hover:shadow-md hover:scale-105'
                 }`}
               >
@@ -474,7 +474,7 @@ export function RecordsFilters({
                     onClick={() => onGraphicTypeChange('timeseries')}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
                       graphicType === 'timeseries'
-                        ? 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 border-2 border-blue-300 shadow-md hover:shadow-lg'
+                        ? 'bg-gradient-to-br from-red-100 to-rose-200 text-red-700 border-2 border-red-300 shadow-md hover:shadow-lg'
                         : 'bg-gradient-to-br from-white to-slate-50 text-slate-600 hover:from-slate-50 hover:to-slate-100 border-2 border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md hover:scale-105'
                     }`}
                   >
@@ -484,7 +484,7 @@ export function RecordsFilters({
                     onClick={() => onGraphicTypeChange('topN')}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
                       graphicType === 'topN'
-                        ? 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 border-2 border-blue-300 shadow-md hover:shadow-lg'
+                        ? 'bg-gradient-to-br from-red-100 to-rose-200 text-red-700 border-2 border-red-300 shadow-md hover:shadow-lg'
                         : 'bg-gradient-to-br from-white to-slate-50 text-slate-600 hover:from-slate-50 hover:to-slate-100 border-2 border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md hover:scale-105'
                     }`}
                   >
@@ -494,7 +494,7 @@ export function RecordsFilters({
                     onClick={() => onGraphicTypeChange('barChart')}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
                       graphicType === 'barChart'
-                        ? 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 border-2 border-blue-300 shadow-md hover:shadow-lg'
+                        ? 'bg-gradient-to-br from-red-100 to-rose-200 text-red-700 border-2 border-red-300 shadow-md hover:shadow-lg'
                         : 'bg-gradient-to-br from-white to-slate-50 text-slate-600 hover:from-slate-50 hover:to-slate-100 border-2 border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md hover:scale-105'
                     }`}
                   >
@@ -504,7 +504,7 @@ export function RecordsFilters({
                     onClick={() => onGraphicTypeChange('pieChart')}
                     className={`px-3 py-1.5 text-xs font-semibold rounded-full transition-all duration-300 ${
                       graphicType === 'pieChart'
-                        ? 'bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 border-2 border-blue-300 shadow-md hover:shadow-lg'
+                        ? 'bg-gradient-to-br from-red-100 to-rose-200 text-red-700 border-2 border-red-300 shadow-md hover:shadow-lg'
                         : 'bg-gradient-to-br from-white to-slate-50 text-slate-600 hover:from-slate-50 hover:to-slate-100 border-2 border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md hover:scale-105'
                     }`}
                   >
@@ -518,7 +518,7 @@ export function RecordsFilters({
                     <select
                       value={groupBy}
                       onChange={(e) => onGroupByChange(e.target.value)}
-                      className="px-3 py-1.5 text-xs font-semibold rounded-full border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50 text-slate-600 hover:from-slate-50 hover:to-slate-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 shadow-sm transition-all duration-300"
+                      className="px-3 py-1.5 text-xs font-semibold rounded-full border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50 text-slate-600 hover:from-slate-50 hover:to-slate-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-red-400 shadow-sm transition-all duration-300"
                     >
                       <option value="service">Service</option>
                       <option value="source">Source</option>
@@ -569,7 +569,7 @@ export function RecordsFilters({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-3">Start Date</label>
-                    <div className="border-2 border-slate-200 rounded-2xl p-4 bg-gradient-to-br from-white to-slate-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 shadow-md">
+                    <div className="border-2 border-slate-200 rounded-2xl p-4 bg-gradient-to-br from-white to-slate-50 hover:border-red-300 hover:shadow-lg transition-all duration-300 shadow-md">
                       <Calendar
                         mode="single"
                         selected={customStartDate}
@@ -577,7 +577,7 @@ export function RecordsFilters({
                         disabled={(date) => date > new Date()}
                         className="w-full"
                         classNames={{
-                          today: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-900 font-semibold rounded-full shadow-sm",
+                          today: "bg-gradient-to-br from-rose-100 to-red-200 text-red-900 font-semibold rounded-full shadow-sm",
                           selected: "bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 rounded-full shadow-lg",
                         }}
                       />
@@ -598,7 +598,7 @@ export function RecordsFilters({
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-3">End Date</label>
-                    <div className="border-2 border-slate-200 rounded-2xl p-4 bg-gradient-to-br from-white to-slate-50 hover:border-blue-300 hover:shadow-lg transition-all duration-300 shadow-md">
+                    <div className="border-2 border-slate-200 rounded-2xl p-4 bg-gradient-to-br from-white to-slate-50 hover:border-red-300 hover:shadow-lg transition-all duration-300 shadow-md">
                       <Calendar
                         mode="single"
                         selected={customEndDate}
@@ -606,7 +606,7 @@ export function RecordsFilters({
                         disabled={(date) => date > new Date() || (customStartDate ? date < customStartDate : false)}
                         className="w-full"
                         classNames={{
-                          today: "bg-gradient-to-br from-blue-100 to-blue-200 text-blue-900 font-semibold rounded-full shadow-sm",
+                          today: "bg-gradient-to-br from-rose-100 to-red-200 text-red-900 font-semibold rounded-full shadow-sm",
                           selected: "bg-gradient-to-br from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 rounded-full shadow-lg",
                         }}
                       />
@@ -626,7 +626,7 @@ export function RecordsFilters({
 
               {/* Selected Range Preview */}
               {customStartDate && customEndDate && (
-                <div className="mt-6 p-4 bg-gradient-to-br from-blue-50 via-indigo-50 to-blue-50 border-2 border-blue-200 rounded-2xl shadow-lg">
+                <div className="mt-6 p-4 bg-gradient-to-br from-red-50 via-rose-50 to-red-50 border-2 border-red-200 rounded-2xl shadow-lg">
                   <p className="text-sm text-slate-900">
                     <span className="font-bold">Selected Range:</span>{' '}
                     <span className="font-medium">
@@ -685,7 +685,7 @@ export function RecordsFilters({
                   }
                 }}
                 disabled={!customStartDate || !customEndDate}
-                className="px-8 h-12 text-base font-bold bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-600 hover:from-blue-700 hover:via-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-2xl hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300"
+                className="px-8 h-12 text-base font-bold bg-gradient-to-br from-red-600 via-red-600 to-rose-600 hover:from-red-700 hover:via-red-700 hover:to-rose-700 text-white rounded-full shadow-lg hover:shadow-2xl hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition-all duration-300"
               >
                 Apply Date Range
               </Button>
