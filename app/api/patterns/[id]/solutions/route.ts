@@ -67,35 +67,12 @@ export async function POST(
 
     console.log(`✅ Generated ${solutions.length} solutions`)
 
-    // Save solutions to database
-    const solutionsToInsert = solutions.map(solution => ({
-      pattern_id: patternId,
-      name: solution.name,
-      description: solution.description,
-      cost_min: solution.cost_min,
-      cost_max: solution.cost_max,
-      feasibility: solution.feasibility,
-      implementation_start_date: solution.implementation_start_date,
-      implementation_end_date: solution.implementation_end_date,
-    }))
-
-    const { data: savedSolutions, error: saveError } = await supabase
-      .from('solutions')
-      .insert(solutionsToInsert)
-      .select()
-
-    if (saveError) {
-      console.error('Error saving solutions:', saveError)
-      return NextResponse.json(
-        { success: false, error: 'Failed to save solutions' },
-        { status: 500 }
-      )
-    }
-
+    // Return solutions without saving to database
+    // Solutions will be saved only when user clicks "Save Solution" button
     return NextResponse.json({
       success: true,
-      solutions: savedSolutions,
-      count: savedSolutions?.length || 0,
+      solutions: solutions,
+      count: solutions.length,
     })
   } catch (error) {
     console.error('Error generating solutions:', error)

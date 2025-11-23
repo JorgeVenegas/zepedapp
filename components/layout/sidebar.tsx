@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
-import { AlertCircle, LayoutGrid, Database, Settings, Network } from "lucide-react"
+import { AlertCircle, LayoutGrid, Database, Settings, Network, Lightbulb } from "lucide-react"
 
 interface SidebarProps {
   expanded?: boolean
@@ -17,6 +17,7 @@ export function Sidebar({ expanded = false }: SidebarProps) {
     { href: "/", label: "Dashboard", icon: LayoutGrid },
     { href: "/records", label: "Records", icon: Database },
     { href: "/patterns", label: "Patterns", icon: Network },
+    { href: "/solutions", label: "Solutions", icon: Lightbulb },
     { href: "/settings", label: "Settings", icon: Settings },
   ]
 

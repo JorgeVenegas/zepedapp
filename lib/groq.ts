@@ -239,7 +239,7 @@ Context:
 - Solutions must be feasible within CDMX's transit infrastructure and budget
 - Consider short-term, medium-term, and long-term solutions
 
-Respond with ONLY the JSON array of 3 solutions, nothing else.`;
+Respond with ONLY the JSON array of 3 solutions in English, nothing else.`;
 
     try {
         const groqResult = await runGroqQuery({
