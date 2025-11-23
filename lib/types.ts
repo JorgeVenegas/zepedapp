@@ -30,6 +30,17 @@ export interface Pattern {
   updated_at: string
 }
 
+// Display pattern type for dashboard visualization
+export interface DisplayPattern {
+  id: string
+  text: string
+  count: number
+  recordIds: string[]
+  firstSeen: string
+  lastSeen: string
+  type: "external" | "internal"
+}
+
 // Solution types
 export interface Solution {
   id: string

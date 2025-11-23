@@ -3,7 +3,9 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { Card } from "@/components/ui/card"
 
-const data = [
+type AreaChartVariant = "default" | "sample"
+
+const defaultData = [
   { date: "Mon", pattern1: 40, pattern2: 24, pattern3: 24 },
   { date: "Tue", pattern1: 30, pattern2: 13, pattern3: 22 },
   { date: "Wed", pattern1: 20, pattern2: 98, pattern3: 29 },
@@ -13,11 +15,25 @@ const data = [
   { date: "Sun", pattern1: 34, pattern2: 43, pattern3: 21 },
 ]
 
-export function AreaChartComponent() {
+const sampleData = [
+  { label: "Data 1", seriesA: 30, seriesB: 20, seriesC: 15 },
+  { label: "Data 2", seriesA: 40, seriesB: 25, seriesC: 18 },
+  { label: "Data 3", seriesA: 28, seriesB: 30, seriesC: 22 },
+]
+
+interface AreaChartComponentProps {
+  variant?: AreaChartVariant
+}
+
+export function AreaChartComponent({ variant = "default" }: AreaChartComponentProps) {
+  const data = variant === "sample" ? sampleData : defaultData
+  const xKey = variant === "sample" ? "label" : "date"
+  const title = variant === "sample" ? "Sample Area Chart" : "Pattern Trends (Weekly)"
+
   return (
-    <Card className="p-6 bg-card border-border">
-      <h3 className="text-lg font-semibold text-foreground mb-6">Pattern Trends (Weekly)</h3>
-      <div className="w-full h-64">
+    <Card className="p-6 bg-card border-border w-full h-full flex flex-col">
+      <h3 className="text-lg font-semibold text-foreground mb-4 flex-shrink-0">{title}</h3>
+      <div className="w-full flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>
@@ -35,7 +51,7 @@ export function AreaChartComponent() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-            <XAxis dataKey="date" stroke="rgba(0,0,0,0.5)" />
+            <XAxis dataKey={xKey} stroke="rgba(0,0,0,0.5)" />
             <YAxis stroke="rgba(0,0,0,0.5)" />
             <Tooltip
               contentStyle={{
@@ -46,7 +62,7 @@ export function AreaChartComponent() {
             />
             <Area
               type="monotone"
-              dataKey="pattern1"
+              dataKey={variant === "sample" ? "seriesA" : "pattern1"}
               stackId="1"
               stroke="#ec4899"
               fillOpacity={1}
@@ -54,7 +70,7 @@ export function AreaChartComponent() {
             />
             <Area
               type="monotone"
-              dataKey="pattern2"
+              dataKey={variant === "sample" ? "seriesB" : "pattern2"}
               stackId="1"
               stroke="#06b6d4"
               fillOpacity={1}
@@ -62,7 +78,7 @@ export function AreaChartComponent() {
             />
             <Area
               type="monotone"
-              dataKey="pattern3"
+              dataKey={variant === "sample" ? "seriesC" : "pattern3"}
               stackId="1"
               stroke="#8b5cf6"
               fillOpacity={1}

@@ -2,11 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import type { Pattern } from "@/lib/types"
+import type { DisplayPattern } from "@/lib/types"
 
 interface PatternsTableProps {
   title: string
-  patterns: Pattern[]
+  patterns: DisplayPattern[]
   type: "external" | "internal"
 }
 
