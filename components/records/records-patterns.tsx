@@ -1,10 +1,11 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { TrendingUp, AlertCircle, Clock, Activity, Sparkles, Loader2, Zap, Save, Plus } from "lucide-react"
+import { TrendingUp, AlertCircle, Clock, Activity, Sparkles, Loader2, Zap, Save, Plus, BookmarkPlus, FileText, Check } from "lucide-react"
 
 interface RecordsPatternsProps {
   filters?: Record<string, string[]>
@@ -88,6 +89,30 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
   const animationRef = useRef<{ cancelled: boolean; words: string[] }>({ cancelled: false, words: [] })
   const [isPatternSaved, setIsPatternSaved] = useState(false)
   const [checkingSaved, setCheckingSaved] = useState(false)
+  const [lastGeneratedFilters, setLastGeneratedFilters] = useState<Record<string, string[]> | undefined>(undefined)
+  const [lastGeneratedDateRange, setLastGeneratedDateRange] = useState<string | undefined>(undefined)
+  const [solutions, setSolutions] = useState<any[]>([])
+  const [loadingSolutions, setLoadingSolutions] = useState(false)
+  const [typingStates, setTypingStates] = useState<{[key: number]: {words: string[], currentIndex: number}}>({})
+  const [typingComplete, setTypingComplete] = useState<{[key: number]: boolean}>({})
+  const [solutionIds, setSolutionIds] = useState<{[key: number]: string | null}>({})
+  const [savingSolution, setSavingSolution] = useState<{[key: number]: boolean}>({})
+  const [selectedSolutionDetail, setSelectedSolutionDetail] = useState<any | null>(null)
+
+  // Check if current filters differ from last generated filters
+  const filtersHaveChanged = () => {
+    if (!lastGeneratedFilters && !lastGeneratedDateRange) return true
+    
+    // Compare filters
+    const currentFiltersStr = JSON.stringify(filters || {})
+    const lastFiltersStr = JSON.stringify(lastGeneratedFilters || {})
+    if (currentFiltersStr !== lastFiltersStr) return true
+    
+    // Compare date range
+    if (dateRange !== lastGeneratedDateRange) return true
+    
+    return false
+  }
 
   // Fetch patterns on mount and when hasGenerated changes
   useEffect(() => {
@@ -118,8 +143,8 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
     setIsAiThinking(true)
     setCurrentWordIndex(0)
     
-    // Loading phase with cancellation check
-    for (let i = 0; i < 50; i++) {
+    // Loading phase with cancellation check - 3 seconds total
+    for (let i = 0; i < 30; i++) {
       if (animationRef.current.cancelled) return
       await new Promise(resolve => setTimeout(resolve, 100))
     }
@@ -156,6 +181,7 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
     setShowAiAnalysis(false)
     setAiThought("")
     setCurrentWordIndex(0)
+    setSolutions([])
     animationRef.current = { cancelled: false, words: [] }
     
     // Check if pattern is already saved in database
@@ -292,33 +318,139 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
     }
   }
 
+  const handleSaveSolution = async (solution: any, index: number) => {
+    try {
+      setSavingSolution(prev => ({ ...prev, [index]: true }))
+      
+      // If already saved, delete it
+      if (solutionIds[index]) {
+        const response = await fetch(`/api/solutions/${solutionIds[index]}`, {
+          method: 'DELETE',
+        })
+        
+        const data = await response.json()
+        
+        if (data.success) {
+          setSolutionIds(prev => ({ ...prev, [index]: null }))
+          setSaveMessage('Solution removed successfully')
+        } else {
+          setSaveMessage('Failed to remove solution')
+        }
+      } else {
+        // Save new solution
+        const response = await fetch('/api/solutions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: solution.name,
+            description: solution.description,
+            cost_min: solution.cost_min,
+            cost_max: solution.cost_max,
+            feasibility: solution.feasibility,
+            implementation_start_date: solution.implementation_start_date,
+            implementation_end_date: solution.implementation_end_date,
+          }),
+        })
+        
+        const data = await response.json()
+        
+        if (data.success && data.data?.id) {
+          setSolutionIds(prev => ({ ...prev, [index]: data.data.id }))
+          setSaveMessage('Solution saved successfully')
+        } else {
+          setSaveMessage('Failed to save solution')
+        }
+      }
+      
+      setTimeout(() => setSaveMessage(null), 3000)
+    } catch (error) {
+      console.error('Error saving/removing solution:', error)
+      setSaveMessage('Error occurred')
+      setTimeout(() => setSaveMessage(null), 3000)
+    } finally {
+      setSavingSolution(prev => ({ ...prev, [index]: false }))
+    }
+  }
+
   const handleCreateSolution = async () => {
-    if (!selectedPattern) return
+    if (!selectedPattern || !selectedPattern.id) return
     
     setIsCreatingSolution(true)
+    setLoadingSolutions(true)
     setSolutionMessage(null)
+    // Immediately show empty solutions array to trigger drawer expansion
+    setSolutions([{}, {}, {}])
+    setTypingStates({})
+    setTypingComplete({})
+    setSolutionIds({})
     
     try {
-      const response = await fetch('/api/solutions', {
+      const response = await fetch(`/api/patterns/${selectedPattern.id}/solutions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pattern: selectedPattern,
-          title: `Solution for: ${selectedPattern.title}`,
-          description: selectedPattern.description
-        })
       })
       
-      if (response.ok) {
-        setSolutionMessage('Solution created successfully!')
+      const result = await response.json()
+      
+      if (result.success) {
+        setSolutionMessage(`✅ Successfully generated ${result.count} solutions!`)
+        const generatedSolutions = result.solutions || []
+        setSolutions(generatedSolutions)
+        
+        // Initialize typing animation for each solution
+        const initialTypingStates: {[key: number]: {words: string[], currentIndex: number}} = {}
+        const initialTypingComplete: {[key: number]: boolean} = {}
+        generatedSolutions.forEach((solution: any, idx: number) => {
+          const words = solution.description.split(' ')
+          initialTypingStates[idx] = { words, currentIndex: 0 }
+          initialTypingComplete[idx] = false
+        })
+        setTypingStates(initialTypingStates)
+        setTypingComplete(initialTypingComplete)
+        
+        // Animate words appearing - smoother like AI Analysis
+        let wordIndex = 0
+        const totalWords = Math.max(...generatedSolutions.map((s: any) => s.description.split(' ').length))
+        const interval = setInterval(() => {
+          wordIndex++
+          setTypingStates(prev => {
+            const newStates = { ...prev }
+            Object.keys(newStates).forEach(key => {
+              const idx = parseInt(key)
+              if (newStates[idx].currentIndex < newStates[idx].words.length) {
+                newStates[idx] = { ...newStates[idx], currentIndex: newStates[idx].currentIndex + 1 }
+              } else if (newStates[idx].currentIndex === newStates[idx].words.length) {
+                // Mark typing as complete for this solution
+                setTypingComplete(prevComplete => ({ ...prevComplete, [idx]: true }))
+              }
+            })
+            return newStates
+          })
+          
+          if (wordIndex >= totalWords) {
+            clearInterval(interval)
+            // Mark all as complete
+            const allComplete: {[key: number]: boolean} = {}
+            generatedSolutions.forEach((_: any, idx: number) => {
+              allComplete[idx] = true
+            })
+            setTypingComplete(allComplete)
+          }
+        }, 80)
+        
+        setTimeout(() => setSolutionMessage(null), 3000)
       } else {
-        setSolutionMessage('Failed to create solution')
+        setSolutionMessage(`❌ ${result.error || 'Failed to generate solutions'}`)
+        setSolutions([])
+        setTimeout(() => setSolutionMessage(null), 5000)
       }
-    } catch (error) {
-      console.error('Error creating solution:', error)
-      setSolutionMessage('Error creating solution')
+    } catch (err) {
+      console.error('Error creating solution:', err)
+      setSolutionMessage('❌ An error occurred while generating solutions')
+      setSolutions([])
+      setTimeout(() => setSolutionMessage(null), 5000)
     } finally {
       setIsCreatingSolution(false)
+      setLoadingSolutions(false)
     }
   }
 
@@ -360,6 +492,10 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
         const sortedPatterns = [...result.patterns].sort((a, b) => b.frequency - a.frequency)
         setPatterns(sortedPatterns)
         setHasGenerated(true)
+        
+        // Track the filters used for this generation
+        setLastGeneratedFilters(filters ? { ...filters } : undefined)
+        setLastGeneratedDateRange(dateRange)
       } else {
         setError(result.error || 'Failed to generate patterns')
       }
@@ -370,17 +506,6 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
       setIsGenerating(false)
     }
   }
-
-  // Auto-generate patterns when filters or dateRange change
-  useEffect(() => {
-    // Only auto-generate if we have filters or dateRange
-    // This prevents generation on initial mount with no data
-    if (filters || dateRange) {
-      console.log('🔄 Filters or date range changed, auto-generating patterns...')
-      generatePatterns()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, dateRange])
 
   const saveAllPatterns = async () => {
     if (patterns.length === 0) return
@@ -511,8 +636,28 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
             </h3>
             <p className="text-xs text-slate-500">AI-identified recurring issues and anomalies</p>
           </div>
-          <div className="flex items-center gap-4">
-            {patterns.length > 0 && (
+          <div className="flex items-center gap-3">
+            {filtersHaveChanged() && (
+              <Button
+                onClick={generatePatterns}
+                disabled={isGenerating}
+                size="sm"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate Patterns
+                  </>
+                )}
+              </Button>
+            )}
+            {patterns.length > 0 && !filtersHaveChanged() && (
               <Button
                 onClick={saveAllPatterns}
                 disabled={isSaving}
@@ -538,30 +683,14 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
                 {saveMessage}
               </div>
             )}
-            <Button
-              onClick={generatePatterns}
-              disabled={isGenerating}
-              size="sm"
-              className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Regenerate
-                </>
-              )}
-            </Button>
-            <div className="flex items-center gap-2 bg-gradient-to-br from-red-50 to-rose-50 px-4 py-2 rounded-lg border border-red-200/60">
-              <span className="text-xs font-medium text-slate-600">Total patterns:</span>
-              <Badge className="bg-red-600 text-white hover:bg-red-700 font-bold text-sm px-2 py-1">
-                {patterns.length}
-              </Badge>
-            </div>
+            {patterns.length > 0 && (
+              <div className="flex items-center gap-2 bg-gradient-to-br from-red-50 to-rose-50 px-4 py-2 rounded-lg border border-red-200/60">
+                <span className="text-xs font-medium text-slate-600">Total patterns:</span>
+                <Badge className="bg-red-600 text-white hover:bg-red-700 font-bold text-sm px-2 py-1">
+                  {patterns.length}
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -644,9 +773,10 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
         setIsDrawerOpen(open)
         if (!open) {
           animationRef.current.cancelled = true
+          setSolutions([])
         }
       }}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className={`overflow-y-auto transition-all duration-500 ease-in-out ${solutions.length > 0 ? '!w-[90vw] !max-w-none' : '!w-full sm:!w-[640px]'}`}>
           {selectedPattern && (
             <>
               <SheetHeader>
@@ -656,7 +786,9 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
+              <div className={`mt-6 ${solutions.length > 0 ? 'grid grid-cols-2 gap-6 h-[calc(100vh-12rem)]' : 'space-y-6'}`}>
+                {/* Left Side - Pattern Details */}
+                <div className={`space-y-6 ${solutions.length > 0 ? 'overflow-y-auto pr-4' : ''}`}>
                 {/* Priority Badge */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-slate-600">Priority:</span>
@@ -1071,10 +1203,326 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
                   </div>
                 )}
               </div>
+
+              {/* Right Side - Solutions */}
+              {solutions.length > 0 && (
+                <div className="space-y-6 border-l border-slate-200 pl-6 overflow-y-auto pr-4 pointer-events-auto">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">Generated Solutions</h3>
+                    <p className="text-sm text-slate-600">AI-powered solutions for this pattern</p>
+                  </div>
+
+                  {loadingSolutions ? (
+                    <div className="space-y-4">
+                      {[0, 1, 2].map((idx) => (
+                        <div 
+                          key={idx} 
+                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-200 animate-in fade-in"
+                          style={{ animationDelay: `${idx * 200}ms`, animationFillMode: 'both' }}
+                        >
+                          {/* Title skeleton with shimmer */}
+                          <div className="h-6 bg-gradient-to-r from-purple-200 via-purple-300 to-purple-200 rounded-md mb-3 w-3/4 animate-pulse bg-[length:200%_100%] animate-shimmer" />
+                          
+                          {/* Description skeleton lines */}
+                          <div className="space-y-2 mb-4">
+                            <div className="h-4 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded w-full animate-pulse bg-[length:200%_100%] animate-shimmer" />
+                            <div className="h-4 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded w-full animate-pulse bg-[length:200%_100%] animate-shimmer" />
+                            <div className="h-4 bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 rounded w-2/3 animate-pulse bg-[length:200%_100%] animate-shimmer" />
+                          </div>
+                          
+                          {/* Metrics skeleton */}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="h-3 bg-slate-200 rounded w-20 mb-2" />
+                              <div className="h-4 bg-slate-300 rounded w-12" />
+                            </div>
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="h-3 bg-slate-200 rounded w-20 mb-2" />
+                              <div className="h-4 bg-slate-300 rounded w-24" />
+                            </div>
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="h-3 bg-slate-200 rounded w-16 mb-2" />
+                              <div className="h-4 bg-slate-300 rounded w-28" />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {/* AI generation message */}
+                      <div className="flex items-center justify-center gap-2 py-4">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-sm text-purple-600 font-medium">AI is analyzing pattern and generating solutions...</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {solutions.map((solution, idx) => (
+                        <div 
+                          key={solution.id || idx} 
+                          className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 animate-in fade-in slide-in-from-bottom-4 pointer-events-auto"
+                          style={{ animationDelay: `${idx * 150}ms`, animationFillMode: 'both' }}
+                        >
+                          <h4 className="text-lg font-bold text-purple-900 mb-3">{solution.name}</h4>
+                          
+                          <p className="text-sm text-slate-700 mb-4 leading-relaxed">
+                            {typingStates[idx] ? (
+                              typingStates[idx].words.slice(0, typingStates[idx].currentIndex).map((word, wordIdx) => (
+                                <span 
+                                  key={wordIdx} 
+                                  className="animate-fadeIn"
+                                  style={{ animationDelay: '0ms' }}
+                                >
+                                  {word + ' '}
+                                </span>
+                              ))
+                            ) : solution.description}
+                          </p>
+                          
+                          {/* Show metrics only after typing completes */}
+                          {(typingComplete[idx] || !typingStates[idx]) && (
+                          <div className="grid grid-cols-3 gap-3 animate-in fade-in slide-in-from-bottom-2" style={{ animationDuration: '500ms' }}>
+                            <div className="bg-white/60 rounded-lg p-3 animate-float" style={{ animationDelay: '0ms' }}>
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Feasibility</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {solution.feasibility}/10
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white/60 rounded-lg p-3 animate-float" style={{ animationDelay: '200ms' }}>
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cost Range</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                ${(solution.cost_min || 0).toLocaleString()} - ${(solution.cost_max || 0).toLocaleString()} MXN
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white/60 rounded-lg p-3 animate-float" style={{ animationDelay: '400ms' }}>
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Timeline</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {new Date(solution.implementation_start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                {' → '}
+                                {new Date(solution.implementation_end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                          )}
+                          
+                          {/* Action buttons - show after typing completes */}
+                          {(typingComplete[idx] || !typingStates[idx]) && (
+                          <div className="flex gap-2 mt-4 animate-in fade-in slide-in-from-bottom-2 pointer-events-auto" style={{ animationDuration: '500ms', animationDelay: '200ms' }}>
+                            {solutionIds[idx] ? (
+                              <Button
+                                onClick={() => handleSaveSolution(solution, idx)}
+                                disabled={savingSolution[idx]}
+                                variant="outline"
+                                className="flex-1 border-2 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400"
+                              >
+                                {savingSolution[idx] ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Removing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="w-4 h-4 mr-2" />
+                                    Unsave Solution
+                                  </>
+                                )}
+                              </Button>
+                            ) : (
+                              <Button
+                                onClick={() => handleSaveSolution(solution, idx)}
+                                disabled={savingSolution[idx]}
+                                variant="outline"
+                                className="flex-1 border-2 border-green-300 text-green-700 hover:bg-green-50 hover:border-green-400"
+                              >
+                                {savingSolution[idx] ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Saving...
+                                  </>
+                                ) : (
+                                  <>
+                                    <BookmarkPlus className="w-4 h-4 mr-2" />
+                                    Save Solution
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                            <Button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                e.stopPropagation()
+                                console.log('View Details clicked:', solution)
+                                setSelectedSolutionDetail(solution)
+                              }}
+                              disabled={loadingSolutions || !solution.name || !solution.description}
+                              variant="outline"
+                              className="flex-1 border-2 border-purple-300 text-purple-700 hover:bg-purple-50 hover:border-purple-400 disabled:opacity-50 disabled:cursor-not-allowed pointer-events-auto"
+                            >
+                              <FileText className="w-4 h-4 mr-2" />
+                              View Details
+                            </Button>
+                          </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             </>
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Solution Details Modal - Rendered via Portal to escape drawer z-index */}
+      {selectedSolutionDetail && typeof document !== 'undefined' && createPortal(
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[9999] animate-in fade-in"
+          onClick={() => {
+            console.log('Modal backdrop clicked')
+            setSelectedSolutionDetail(null)
+          }}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-8 animate-in slide-in-from-bottom-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex-1">
+                <h2 className="text-2xl font-bold text-slate-800 mb-3">
+                  {selectedSolutionDetail.name}
+                </h2>
+                <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border-2 bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
+                  <TrendingUp className={`w-5 h-5 ${
+                    selectedSolutionDetail.feasibility >= 8 ? 'text-green-600' :
+                    selectedSolutionDetail.feasibility >= 5 ? 'text-yellow-600' : 'text-red-600'
+                  }`} />
+                  <span className={`text-lg font-bold ${
+                    selectedSolutionDetail.feasibility >= 8 ? 'text-green-700' :
+                    selectedSolutionDetail.feasibility >= 5 ? 'text-yellow-700' : 'text-red-700'
+                  }`}>
+                    Feasibility: {selectedSolutionDetail.feasibility}/10
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  console.log('× button clicked')
+                  setSelectedSolutionDetail(null)
+                }}
+                className="text-slate-400 hover:text-slate-600 text-3xl font-bold leading-none transition-colors pointer-events-auto cursor-pointer z-10"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-slate-50 rounded-xl p-6 border-2 border-slate-200">
+                <h3 className="text-sm font-bold text-slate-700 mb-3 uppercase tracking-wide flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Description
+                </h3>
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap">
+                  {selectedSolutionDetail.description}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white text-xl">$</span>
+                    </div>
+                    <h3 className="text-sm font-bold text-green-900 uppercase tracking-wide">
+                      Budget Range
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    <div>
+                      <p className="text-xs text-green-600 font-medium">Minimum</p>
+                      <p className="text-2xl font-bold text-green-800">
+                        {new Intl.NumberFormat('es-MX', {
+                          style: 'currency',
+                          currency: 'MXN',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(selectedSolutionDetail.cost_min)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-green-600 font-medium">Maximum</p>
+                      <p className="text-2xl font-bold text-green-800">
+                        {new Intl.NumberFormat('es-MX', {
+                          style: 'currency',
+                          currency: 'MXN',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }).format(selectedSolutionDetail.cost_max)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-white" />
+                    </div>
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wide">
+                      Timeline
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-xs text-blue-600 font-medium mb-1">Start Date</p>
+                      <p className="text-lg font-bold text-blue-800">
+                        {new Date(selectedSolutionDetail.implementation_start_date).toLocaleDateString('es-MX', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-blue-600 font-medium mb-1">End Date</p>
+                      <p className="text-lg font-bold text-blue-800">
+                        {new Date(selectedSolutionDetail.implementation_end_date).toLocaleDateString('es-MX', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t-2 border-slate-200 flex gap-3">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    console.log('Close button clicked')
+                    setSelectedSolutionDetail(null)
+                  }}
+                  className="flex-1 px-6 py-3 bg-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-300 transition-all duration-200 pointer-events-auto cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

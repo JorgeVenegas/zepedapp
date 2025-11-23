@@ -8,8 +8,12 @@ function countKeywords(incidents: NormalizedIncident[]): Map<string, number> {
   
   for (const incident of incidents) {
     for (const keyword of incident.keywords) {
-      const normalized = keyword.toLowerCase();
-      freq.set(normalized, (freq.get(normalized) || 0) + 1);
+      // Clean keyword by removing brackets and quotes, then normalize
+      const cleaned = String(keyword).replace(/[\[\]"']/g, '').trim();
+      if (cleaned) {
+        const normalized = cleaned.toLowerCase();
+        freq.set(normalized, (freq.get(normalized) || 0) + 1);
+      }
     }
   }
   
@@ -96,14 +100,21 @@ function generateTitle(
     );
     
     if (specificKeywords.length > 0) {
-      // Create natural phrases from keywords
-      const keywordPhrase = specificKeywords.length === 1 
-        ? specificKeywords[0]
-        : specificKeywords.length === 2
-          ? `${specificKeywords[0]} and ${specificKeywords[1]}`
-          : specificKeywords.slice(0, 2).join(' & ');
+      // Clean keywords by removing brackets and quotes
+      const cleanedKeywords = specificKeywords.map(kw => 
+        String(kw).replace(/[\[\]"']/g, '').trim()
+      ).filter(Boolean);
       
-      title += `: ${keywordPhrase.charAt(0).toUpperCase() + keywordPhrase.slice(1)}`;
+      if (cleanedKeywords.length > 0) {
+        // Create natural phrases from keywords
+        const keywordPhrase = cleanedKeywords.length === 1 
+          ? cleanedKeywords[0]
+          : cleanedKeywords.length === 2
+            ? `${cleanedKeywords[0]} and ${cleanedKeywords[1]}`
+            : cleanedKeywords.slice(0, 2).join(' & ');
+        
+        title += `: ${keywordPhrase.charAt(0).toUpperCase() + keywordPhrase.slice(1)}`;
+      }
     }
   }
   
