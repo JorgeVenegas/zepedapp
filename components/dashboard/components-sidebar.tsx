@@ -85,7 +85,7 @@ export function ComponentsSidebar({
       <div
         className={`transition-all duration-300 ease-in-out ${
           isOpen ? 'w-[380px]' : 'w-0'
-        } bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100/80 border-l border-slate-300/50 shadow-2xl overflow-hidden`}
+        } bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100/80 border-l border-slate-300/50 shadow-2xl overflow-hidden relative z-50`}
       >
         {isOpen && (
           <div className="h-full flex flex-col overflow-hidden">

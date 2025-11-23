@@ -10,7 +10,7 @@ import { BarChartComponent } from "@/components/dashboard/charts/bar-chart"
 import { PieChartComponent } from "@/components/dashboard/charts/pie-chart"
 import { AreaChartComponent } from "@/components/dashboard/charts/area-chart"
 import { RadarChartComponent } from "@/components/dashboard/charts/radar-chart"
-import { TrendingUp, AlertTriangle, Activity, Zap, Edit3, Eye, Plus } from "lucide-react"
+import { TrendingUp, AlertTriangle, Activity, Zap, Edit3, Eye, Plus, Trash2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ComponentsSidebar } from "@/components/dashboard/components-sidebar"
 import type { DisplayPattern } from "@/lib/types"
@@ -34,6 +34,7 @@ export function DashboardPage() {
   const [containerWidth, setContainerWidth] = useState(1200)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [draggingComponentType, setDraggingComponentType] = useState<string | null>(null)
+  const [editingComponent, setEditingComponent] = useState<{ id: string; type: string } | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const DATA_TRANSFER_TYPE = "application/zepedapp-component"
   const GRID_COLS = 12
@@ -268,6 +269,15 @@ export function DashboardPage() {
     setLayout((prev) => [...prev, newLayout])
   }
 
+  const removeComponent = (componentId: string) => {
+    setLayout((prev) => prev.filter((item) => item.i !== componentId))
+  }
+
+  const handleEditComponent = (componentId: string) => {
+    const componentType = getComponentTypeFromKey(componentId)
+    setEditingComponent({ id: componentId, type: componentType })
+  }
+
   const handleComponentDragStart = (componentType: string) => {
     setDraggingComponentType(componentType)
   }
@@ -325,14 +335,13 @@ export function DashboardPage() {
     : undefined
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 relative">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-indigo-50 via-blue-50 to-cyan-50 relative">
       {/* Animated background pattern */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.05),transparent_50%)] pointer-events-none"></div>
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#f0f9ff_1px,transparent_1px),linear-gradient(to_bottom,#f0f9ff_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_50%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
 
-      <div className="flex-1 overflow-auto relative z-10">
-        {/* Header Section */}
-        <div className="sticky top-0 z-20 bg-gradient-to-r from-white/90 via-blue-50/90 to-white/90 backdrop-blur-xl border-b border-blue-200/40 shadow-lg shadow-blue-500/5">
+      {/* Header Section - Full Width */}
+      <div className="relative z-20 bg-gradient-to-r from-white/90 via-blue-50/90 to-white/90 backdrop-blur-xl border-b border-blue-200/40 shadow-lg shadow-blue-500/5">
           <div className="px-8 py-6">
             <div className="flex items-center justify-between">
               <div>
@@ -356,7 +365,7 @@ export function DashboardPage() {
                   )}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end gap-2">
                 <Button
                   onClick={() => {
                     setIsEditMode((prev) => {
@@ -385,7 +394,7 @@ export function DashboardPage() {
                     </>
                   )}
                 </Button>
-                {isEditMode && (
+                {isEditMode && !isSidebarOpen && (
                   <Button
                     onClick={() => {
                       setIsEditMode(true)
@@ -402,10 +411,11 @@ export function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="px-8 py-8">
+      {/* Main Content Area with Sidebar */}
+      <div className="flex h-[calc(100vh-140px)] relative z-10">
+        <div className="flex-1 overflow-auto px-8 py-8">
           <style jsx global>{`
             @keyframes gradient {
               0%, 100% { background-position: 0% 50%; }
@@ -607,21 +617,51 @@ export function DashboardPage() {
                 width: '100%',
                 height: '100%',
                 display: 'flex',
-                overflow: 'visible',
+                overflow: 'hidden',
                 position: 'relative',
               }}
             >
-              {/* Gradient border effect */}
-              <div className={`absolute inset-0 rounded-[20px] bg-gradient-to-br ${gradientColor} opacity-0 group-hover/item:opacity-100 transition-opacity duration-200 -z-30`}></div>
-
-              {/* Shadow layers for depth */}
-              <div className="absolute inset-0 -z-10 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-[20px] blur-xl opacity-0 group-hover/item:opacity-100 transition-opacity duration-150"></div>
-              <div className="absolute inset-0 -z-20 bg-gradient-to-br from-blue-600/10 to-cyan-600/10 rounded-[20px] blur-2xl scale-95 opacity-0 group-hover/item:opacity-100 transition-all duration-150"></div>
-
               {/* Main content with glass effect */}
               <div className="w-full h-full rounded-[20px] overflow-hidden backdrop-blur-sm bg-white/90 shadow-xl shadow-slate-900/5 group-hover/item:shadow-2xl group-hover/item:shadow-blue-500/10 transition-all duration-100 relative" style={{
                 background: 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(249,250,251,0.95))'
               }}>
+                {/* Edit mode action buttons */}
+                {isEditMode && (
+                  <div className="absolute top-2 right-2 z-[60] flex gap-2 opacity-0 group-hover/item:opacity-100 transition-opacity duration-200">
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        handleEditComponent(item.i)
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                      }}
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 w-8 p-0 rounded-lg bg-white/95 hover:bg-blue-500 hover:text-white border border-slate-200 shadow-lg backdrop-blur-sm transition-all duration-150 hover:scale-110"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        removeComponent(item.i)
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                      }}
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 w-8 p-0 rounded-lg bg-white/95 hover:bg-red-500 hover:text-white border border-slate-200 shadow-lg backdrop-blur-sm transition-all duration-150 hover:scale-110"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
                 <div className="w-full h-full rounded-[20px] overflow-hidden">
                   {renderGridItem(item.i)}
                 </div>
@@ -629,12 +669,11 @@ export function DashboardPage() {
             </div>
           )})}
         </GridLayout>
+      </div>
         </div>
-      </div>
-      </div>
 
-      {isEditMode && (
-        <ComponentsSidebar
+        {isEditMode && (
+          <ComponentsSidebar
           isOpen={isSidebarOpen}
           onToggle={setIsSidebarOpen}
           onAddComponent={(componentType) => addComponent(componentType)}
@@ -643,6 +682,75 @@ export function DashboardPage() {
           getDragPreviewSize={getDragPreviewSize}
         />
       )}
+
+      {/* Edit Component Modal */}
+      {editingComponent && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-600 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Edit Component - {editingComponent.type.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              </h2>
+              <Button
+                onClick={() => setEditingComponent(null)}
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 rounded-full hover:bg-white/20 text-white"
+              >
+                <Plus className="w-5 h-5 rotate-45" />
+              </Button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
+              <div className="space-y-4">
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-slate-700 flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-blue-600" />
+                    <span className="font-semibold">Component ID:</span> {editingComponent.id}
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-sm font-semibold text-slate-700">Component Settings</label>
+                  <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <p className="text-sm text-slate-600 text-center py-8">
+                      Component configuration options will be available here based on the component type.
+                      <br />
+                      <span className="text-xs text-slate-500 mt-2 block">
+                        This feature allows you to customize data sources, display settings, and other component-specific options.
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="bg-slate-50 px-6 py-4 flex items-center justify-end gap-3 border-t border-slate-200">
+              <Button
+                onClick={() => setEditingComponent(null)}
+                variant="outline"
+                className="border-slate-300 hover:bg-slate-100"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  // Save logic here
+                  setEditingComponent(null)
+                }}
+                className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white shadow-lg"
+              >
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   )
 }
