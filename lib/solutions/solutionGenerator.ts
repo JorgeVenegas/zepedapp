@@ -27,12 +27,15 @@ export async function generateSolutions(
         description: solution.description,
         cost: {
           min: solution.costMin,
-          max: solution.costMax
+          max: solution.costMax,
+          justification: solution.costJustification
         },
         feasibility: Math.max(1, Math.min(10, solution.feasibility)), // Ensure 1-10 range
+        feasibilityJustification: solution.feasibilityJustification,
         implementationTime: {
           start: startDate,
-          end: endDate
+          end: endDate,
+          justification: solution.timeJustification
         }
       };
     });
@@ -59,7 +62,13 @@ function filterSolutions(
     
     // Time constraint - calculate days from start to end date
     if (options.timeConstraint) {
-      const days = Math.ceil((solution.implementationTime.end.getTime() - solution.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+      const startDate = typeof solution.implementationTime.start === 'string' 
+        ? new Date(solution.implementationTime.start) 
+        : solution.implementationTime.start;
+      const endDate = typeof solution.implementationTime.end === 'string' 
+        ? new Date(solution.implementationTime.end) 
+        : solution.implementationTime.end;
+      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       if (days > options.timeConstraint) {
         return false;
       }
@@ -83,8 +92,20 @@ function rankSolutions(
       case 'cost':
         return ((a.cost.min + a.cost.max) / 2) - ((b.cost.min + b.cost.max) / 2);
       case 'time':
-        const aDays = Math.ceil((a.implementationTime.end.getTime() - a.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
-        const bDays = Math.ceil((b.implementationTime.end.getTime() - b.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+        const aStartDate = typeof a.implementationTime.start === 'string' 
+          ? new Date(a.implementationTime.start) 
+          : a.implementationTime.start;
+        const aEndDate = typeof a.implementationTime.end === 'string' 
+          ? new Date(a.implementationTime.end) 
+          : a.implementationTime.end;
+        const bStartDate = typeof b.implementationTime.start === 'string' 
+          ? new Date(b.implementationTime.start) 
+          : b.implementationTime.start;
+        const bEndDate = typeof b.implementationTime.end === 'string' 
+          ? new Date(b.implementationTime.end) 
+          : b.implementationTime.end;
+        const aDays = Math.ceil((aEndDate.getTime() - aStartDate.getTime()) / (1000 * 60 * 60 * 24));
+        const bDays = Math.ceil((bEndDate.getTime() - bStartDate.getTime()) / (1000 * 60 * 60 * 24));
         return aDays - bDays;
       case 'feasibility':
       default:

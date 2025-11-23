@@ -110,8 +110,11 @@ Respond with ONLY this JSON format:
       "description": "Detailed description of the solution and how it improves user satisfaction",
       "costMin": 5000,
       "costMax": 15000,
+      "costJustification": "Detailed explanation of why this cost range is realistic, including breakdown of resources, tools, personnel, infrastructure, and any third-party services needed",
       "feasibility": 8,
-      "estimatedDays": 21
+      "feasibilityJustification": "Explanation of technical complexity, required skills, organizational readiness, available resources, potential blockers, and factors that affect implementation difficulty",
+      "estimatedDays": 21,
+      "timeJustification": "Breakdown of implementation phases, dependencies, testing time, rollout strategy, and factors affecting timeline including any parallel work or sequential requirements"
     }
   ]
 }

@@ -4,11 +4,14 @@ export interface Solution {
   cost: {
     min: number;
     max: number;
+    justification?: string; // Detailed cost breakdown and reasoning
   };
   feasibility: number; // 1-10 scale (10 = most feasible)
+  feasibilityJustification?: string; // Explanation of feasibility factors
   implementationTime: {
-    start: Date;
-    end: Date;
+    start: Date | string; // Date object or ISO string from API
+    end: Date | string;   // Date object or ISO string from API
+    justification?: string; // Timeline breakdown and dependencies
   };
 }
 
@@ -26,8 +29,11 @@ export interface GroqSolutionResponse {
     description: string;
     costMin: number;
     costMax: number;
+    costJustification?: string;
     feasibility: number;
+    feasibilityJustification?: string;
     estimatedDays: number;
+    timeJustification?: string;
   }>;
 }
 
