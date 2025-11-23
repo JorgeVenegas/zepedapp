@@ -144,8 +144,8 @@ export function parseAndValidateGroqResponse(
             console.warn(`Expected ${expectedCount} results, got ${parsed.length}`);
         }
 
-        // Validate and return
-        return parsed.map((item, idx) => validateItem(item, idx));
+        // Validate and return, filtering out null values
+        return parsed.map((item, idx) => validateItem(item, idx)).filter((item): item is AnalyzedFeedback => item !== null);
 
     } catch (error: any) {
         console.error("=== Parsing error ===");
@@ -206,22 +206,18 @@ Return a JSON array with this EXACT structure:
   {
     "name": "Solution name",
     "description": "Detailed explanation of the solution in Spanish",
-    "cost": {
-      "min": number in Mexican pesos,
-      "max": number in Mexican pesos
-    },
-    "feasibility": number from 0-100 (0=impossible, 100=very feasible),
-    "timeOfImplementation": {
-      "start": "YYYY-MM-DD",
-      "end": "YYYY-MM-DD"
-    }
+    "cost_min": number in Mexican pesos,
+    "cost_max": number in Mexican pesos,
+    "feasibility": number from 1-10 (1=very difficult, 10=very feasible),
+    "implementation_start_date": "YYYY-MM-DD",
+    "implementation_end_date": "YYYY-MM-DD"
   }
 ]
 
 Requirements:
 - All 3 solutions must be actionable and realistic for Mexico City's context
 - Consider budget constraints, infrastructure, and local regulations
-- Feasibility should account for: technical complexity, political will, budget availability, and time required
+- Feasibility should account for: technical complexity, political will, budget availability, and time required (scale 1-10)
 - Cost ranges should be realistic estimates in MXN
 - Implementation timeframes should be practical (consider planning, approval, execution)
 - Descriptions should be in Spanish and detailed enough to understand the approach
@@ -258,13 +254,13 @@ Respond with ONLY the JSON array of 3 solutions, nothing else.`;
 
         // Validate we got exactly 3 solutions
         if (solutions.length !== 3) {
-            throw new Error("Expected 3 solutions, got ${solutions.length}");
+            throw new Error(`Expected 3 solutions, got ${solutions.length}`);
         }
 
         return solutions;
     } catch (error) {
         console.error('Error generating solutions:', error);
-        throw new Error("Failed to generate solutions: ${error instanceof Error ? error.message : 'Unknown error'}");
+        throw new Error(`Failed to generate solutions: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }
 
@@ -276,8 +272,8 @@ function parseGroqResponse(response: any): Solution[] {
         let cleaned = responseText.trim();
         console.log("CLEANED RESPONSE");
         console.log(cleaned);
-        if (cleaned.startsWith('')) {
-            cleaned = cleaned.replace(/json\n?/g, '').replace(/```\n?/g, '');
+        if (cleaned.startsWith('```')) {
+            cleaned = cleaned.replace(/```json\n?/g, '').replace(/```\n?/g, '');
         }
         // Parse JSON
         const parsed = JSON.parse(cleaned);
@@ -289,27 +285,26 @@ function parseGroqResponse(response: any): Solution[] {
 
         const solutions: Solution[] = parsed.map((item, idx) => {
             // Validate dates
-            const startDate = new Date(item.timeOfImplementation.start);
-            const endDate = new Date(item.timeOfImplementation.end);
+            const startDate = new Date(item.implementation_start_date);
+            const endDate = new Date(item.implementation_end_date);
 
             return {
+                id: '', // Will be set by database
                 name: item.name,
                 description: item.description,
-                cost: {
-                    min: item.cost.min,
-                    max: item.cost.max,
-                },
+                cost_min: item.cost_min,
+                cost_max: item.cost_max,
                 feasibility: item.feasibility,
-                timeOfImplementation: {
-                    start: item.timeOfImplementation.start,
-                    end: item.timeOfImplementation.end,
-                },
+                implementation_start_date: item.implementation_start_date,
+                implementation_end_date: item.implementation_end_date,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
             };
         });
         return solutions;
     }
     catch(error){
         console.error('Failed to parse Groq response:', response);
-        throw new Error("JSON parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}");
+        throw new Error(`JSON parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 }

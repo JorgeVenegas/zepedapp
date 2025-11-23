@@ -53,6 +53,8 @@ export function InternalPatternsPage() {
   const [showAiAnalysis, setShowAiAnalysis] = useState(false)
   const [currentWordIndex, setCurrentWordIndex] = useState(0)
   const animationRef = useRef<{ cancelled: boolean; words: string[] }>({ cancelled: false, words: [] })
+  const [solutions, setSolutions] = useState<any[]>([])
+  const [loadingSolutions, setLoadingSolutions] = useState(false)
 
   // Helper function to get priority color classes
   const getPriorityColor = (priority: number) => {
@@ -124,6 +126,7 @@ export function InternalPatternsPage() {
     animationRef.current = { cancelled: false, words: [] }
     setSaveMessage(null)
     setSolutionMessage(null)
+    setSolutions([])
     
     // Fetch incidents for this pattern
     const incidentIds = pattern.incident_ids || pattern.incidentIds || []
@@ -190,21 +193,34 @@ export function InternalPatternsPage() {
 
   // Handle create solution
   const handleCreateSolution = async () => {
-    if (!selectedPattern) return
+    if (!selectedPattern || !selectedPattern.id) return
     
     setIsCreatingSolution(true)
+    setLoadingSolutions(true)
     setSolutionMessage(null)
     
     try {
-      // Placeholder for solution creation logic
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      setSolutionMessage('Solution creation feature coming soon!')
-      setTimeout(() => setSolutionMessage(null), 3000)
+      const response = await fetch(`/api/patterns/${selectedPattern.id}/solutions`, {
+        method: 'POST',
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        setSolutionMessage(`✅ Successfully generated ${result.count} solutions!`)
+        setSolutions(result.solutions || [])
+        setTimeout(() => setSolutionMessage(null), 3000)
+      } else {
+        setSolutionMessage(`❌ ${result.error || 'Failed to generate solutions'}`)
+        setTimeout(() => setSolutionMessage(null), 5000)
+      }
     } catch (err) {
       console.error('Error creating solution:', err)
-      setSolutionMessage('Failed to create solution')
+      setSolutionMessage('❌ An error occurred while generating solutions')
+      setTimeout(() => setSolutionMessage(null), 5000)
     } finally {
       setIsCreatingSolution(false)
+      setLoadingSolutions(false)
     }
   }
 
@@ -360,9 +376,10 @@ export function InternalPatternsPage() {
         setIsDrawerOpen(open)
         if (!open) {
           animationRef.current.cancelled = true
+          setSolutions([])
         }
       }}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className={`overflow-y-auto ${solutions.length > 0 ? '!w-[90vw] !max-w-none' : '!w-full sm:!w-[640px]'}`}>
           {selectedPattern && (
             <>
               <SheetHeader>
@@ -372,7 +389,9 @@ export function InternalPatternsPage() {
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
+              <div className={`mt-6 ${solutions.length > 0 ? 'grid grid-cols-2 gap-6 h-[calc(100vh-12rem)]' : 'space-y-6'}`}>
+                {/* Left Side - Pattern Details */}
+                <div className={`space-y-6 ${solutions.length > 0 ? 'overflow-y-auto pr-4' : ''}`}>
                 {/* Priority Badge */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-slate-600">Priority:</span>
@@ -765,6 +784,61 @@ export function InternalPatternsPage() {
                   </div>
                 )}
               </div>
+
+              {/* Right Side - Solutions */}
+              {solutions.length > 0 && (
+                <div className="space-y-6 border-l border-slate-200 pl-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">Generated Solutions</h3>
+                    <p className="text-sm text-slate-600">AI-powered solutions for this pattern</p>
+                  </div>
+
+                  {loadingSolutions ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                      <span className="ml-3 text-slate-600">Generating solutions...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 overflow-y-auto pr-4">
+                      {solutions.map((solution, idx) => (
+                        <div key={solution.id || idx} className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-200 shadow-sm">
+                          <h4 className="text-lg font-bold text-purple-900 mb-3">{solution.name}</h4>
+                          
+                          <p className="text-sm text-slate-700 mb-4 leading-relaxed">
+                            {solution.description}
+                          </p>
+                          
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Feasibility</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {solution.feasibility}/10
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cost Range</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                ${(solution.cost_min || 0).toLocaleString()} - ${(solution.cost_max || 0).toLocaleString()} MXN
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Timeline</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {new Date(solution.implementation_start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                {' → '}
+                                {new Date(solution.implementation_end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             </>
           )}
         </SheetContent>

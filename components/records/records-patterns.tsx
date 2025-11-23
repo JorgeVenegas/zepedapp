@@ -88,6 +88,25 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
   const animationRef = useRef<{ cancelled: boolean; words: string[] }>({ cancelled: false, words: [] })
   const [isPatternSaved, setIsPatternSaved] = useState(false)
   const [checkingSaved, setCheckingSaved] = useState(false)
+  const [lastGeneratedFilters, setLastGeneratedFilters] = useState<Record<string, string[]> | undefined>(undefined)
+  const [lastGeneratedDateRange, setLastGeneratedDateRange] = useState<string | undefined>(undefined)
+  const [solutions, setSolutions] = useState<any[]>([])
+  const [loadingSolutions, setLoadingSolutions] = useState(false)
+
+  // Check if current filters differ from last generated filters
+  const filtersHaveChanged = () => {
+    if (!lastGeneratedFilters && !lastGeneratedDateRange) return true
+    
+    // Compare filters
+    const currentFiltersStr = JSON.stringify(filters || {})
+    const lastFiltersStr = JSON.stringify(lastGeneratedFilters || {})
+    if (currentFiltersStr !== lastFiltersStr) return true
+    
+    // Compare date range
+    if (dateRange !== lastGeneratedDateRange) return true
+    
+    return false
+  }
 
   // Fetch patterns on mount and when hasGenerated changes
   useEffect(() => {
@@ -156,6 +175,7 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
     setShowAiAnalysis(false)
     setAiThought("")
     setCurrentWordIndex(0)
+    setSolutions([])
     animationRef.current = { cancelled: false, words: [] }
     
     // Check if pattern is already saved in database
@@ -293,32 +313,34 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
   }
 
   const handleCreateSolution = async () => {
-    if (!selectedPattern) return
+    if (!selectedPattern || !selectedPattern.id) return
     
     setIsCreatingSolution(true)
+    setLoadingSolutions(true)
     setSolutionMessage(null)
     
     try {
-      const response = await fetch('/api/solutions', {
+      const response = await fetch(`/api/patterns/${selectedPattern.id}/solutions`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pattern: selectedPattern,
-          title: `Solution for: ${selectedPattern.title}`,
-          description: selectedPattern.description
-        })
       })
       
-      if (response.ok) {
-        setSolutionMessage('Solution created successfully!')
+      const result = await response.json()
+      
+      if (result.success) {
+        setSolutionMessage(`✅ Successfully generated ${result.count} solutions!`)
+        setSolutions(result.solutions || [])
+        setTimeout(() => setSolutionMessage(null), 3000)
       } else {
-        setSolutionMessage('Failed to create solution')
+        setSolutionMessage(`❌ ${result.error || 'Failed to generate solutions'}`)
+        setTimeout(() => setSolutionMessage(null), 5000)
       }
-    } catch (error) {
-      console.error('Error creating solution:', error)
-      setSolutionMessage('Error creating solution')
+    } catch (err) {
+      console.error('Error creating solution:', err)
+      setSolutionMessage('❌ An error occurred while generating solutions')
+      setTimeout(() => setSolutionMessage(null), 5000)
     } finally {
       setIsCreatingSolution(false)
+      setLoadingSolutions(false)
     }
   }
 
@@ -360,6 +382,10 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
         const sortedPatterns = [...result.patterns].sort((a, b) => b.frequency - a.frequency)
         setPatterns(sortedPatterns)
         setHasGenerated(true)
+        
+        // Track the filters used for this generation
+        setLastGeneratedFilters(filters ? { ...filters } : undefined)
+        setLastGeneratedDateRange(dateRange)
       } else {
         setError(result.error || 'Failed to generate patterns')
       }
@@ -370,17 +396,6 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
       setIsGenerating(false)
     }
   }
-
-  // Auto-generate patterns when filters or dateRange change
-  useEffect(() => {
-    // Only auto-generate if we have filters or dateRange
-    // This prevents generation on initial mount with no data
-    if (filters || dateRange) {
-      console.log('🔄 Filters or date range changed, auto-generating patterns...')
-      generatePatterns()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, dateRange])
 
   const saveAllPatterns = async () => {
     if (patterns.length === 0) return
@@ -511,8 +526,28 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
             </h3>
             <p className="text-xs text-slate-500">AI-identified recurring issues and anomalies</p>
           </div>
-          <div className="flex items-center gap-4">
-            {patterns.length > 0 && (
+          <div className="flex items-center gap-3">
+            {filtersHaveChanged() && (
+              <Button
+                onClick={generatePatterns}
+                disabled={isGenerating}
+                size="sm"
+                className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:from-blue-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all"
+              >
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Generate Patterns
+                  </>
+                )}
+              </Button>
+            )}
+            {patterns.length > 0 && !filtersHaveChanged() && (
               <Button
                 onClick={saveAllPatterns}
                 disabled={isSaving}
@@ -538,30 +573,14 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
                 {saveMessage}
               </div>
             )}
-            <Button
-              onClick={generatePatterns}
-              disabled={isGenerating}
-              size="sm"
-              className="bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all font-semibold"
-            >
-              {isGenerating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Regenerate
-                </>
-              )}
-            </Button>
-            <div className="flex items-center gap-2 bg-gradient-to-br from-red-50 to-rose-50 px-4 py-2 rounded-lg border border-red-200/60">
-              <span className="text-xs font-medium text-slate-600">Total patterns:</span>
-              <Badge className="bg-red-600 text-white hover:bg-red-700 font-bold text-sm px-2 py-1">
-                {patterns.length}
-              </Badge>
-            </div>
+            {patterns.length > 0 && (
+              <div className="flex items-center gap-2 bg-gradient-to-br from-red-50 to-rose-50 px-4 py-2 rounded-lg border border-red-200/60">
+                <span className="text-xs font-medium text-slate-600">Total patterns:</span>
+                <Badge className="bg-red-600 text-white hover:bg-red-700 font-bold text-sm px-2 py-1">
+                  {patterns.length}
+                </Badge>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -644,9 +663,10 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
         setIsDrawerOpen(open)
         if (!open) {
           animationRef.current.cancelled = true
+          setSolutions([])
         }
       }}>
-        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetContent className={`overflow-y-auto ${solutions.length > 0 ? '!w-[90vw] !max-w-none' : '!w-full sm:!w-[640px]'}`}>
           {selectedPattern && (
             <>
               <SheetHeader>
@@ -656,7 +676,9 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
+              <div className={`mt-6 ${solutions.length > 0 ? 'grid grid-cols-2 gap-6 h-[calc(100vh-12rem)]' : 'space-y-6'}`}>
+                {/* Left Side - Pattern Details */}
+                <div className={`space-y-6 ${solutions.length > 0 ? 'overflow-y-auto pr-4' : ''}`}>
                 {/* Priority Badge */}
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-medium text-slate-600">Priority:</span>
@@ -1071,6 +1093,61 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
                   </div>
                 )}
               </div>
+
+              {/* Right Side - Solutions */}
+              {solutions.length > 0 && (
+                <div className="space-y-6 border-l border-slate-200 pl-6">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-1">Generated Solutions</h3>
+                    <p className="text-sm text-slate-600">AI-powered solutions for this pattern</p>
+                  </div>
+
+                  {loadingSolutions ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                      <span className="ml-3 text-slate-600">Generating solutions...</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 overflow-y-auto pr-4">
+                      {solutions.map((solution, idx) => (
+                        <div key={solution.id || idx} className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-5 border border-purple-200 shadow-sm">
+                          <h4 className="text-lg font-bold text-purple-900 mb-3">{solution.name}</h4>
+                          
+                          <p className="text-sm text-slate-700 mb-4 leading-relaxed">
+                            {solution.description}
+                          </p>
+                          
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Feasibility</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {solution.feasibility}/10
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Cost Range</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                ${(solution.cost_min || 0).toLocaleString()} - ${(solution.cost_max || 0).toLocaleString()} MXN
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white/60 rounded-lg p-3">
+                              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Timeline</div>
+                              <div className="text-sm font-bold text-slate-900">
+                                {new Date(solution.implementation_start_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                {' → '}
+                                {new Date(solution.implementation_end_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             </>
           )}
         </SheetContent>
