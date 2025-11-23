@@ -35,11 +35,11 @@ async function testSolutionGeneration() {
     console.log(`✅ Generated ${solutions.length} solutions:\n`);
     
     solutions.forEach((solution, index) => {
+      const days = Math.ceil((solution.implementationTime.end.getTime() - solution.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
       console.log(`${index + 1}. ${solution.name}`);
       console.log(`   Cost: $${solution.cost.min.toLocaleString()} - $${solution.cost.max.toLocaleString()}`);
       console.log(`   Feasibility: ${solution.feasibility}/10`);
-      console.log(`   Timeline: ${solution.implementationTime.estimatedDays} days`);
-      console.log(`   Impact: ${solution.impact}`);
+      console.log(`   Timeline: ${days} days (${solution.implementationTime.start.toDateString()} - ${solution.implementationTime.end.toDateString()})`);
       console.log(`   Description: ${solution.description.substring(0, 100)}...`);
       console.log('');
     });

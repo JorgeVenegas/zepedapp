@@ -55,7 +55,10 @@ export function filterSolutions(
 ): Solution[] {
   return solutions.filter(solution => {
     if (maxCost && solution.cost.min > maxCost) return false;
-    if (maxDays && solution.implementationTime.estimatedDays > maxDays) return false;
+    if (maxDays) {
+      const days = Math.ceil((solution.implementationTime.end.getTime() - solution.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+      if (days > maxDays) return false;
+    }
     if (minFeasibility && solution.feasibility < minFeasibility) return false;
     return true;
   });
@@ -69,18 +72,16 @@ export function filterSolutions(
  */
 export function sortSolutions(
   solutions: Solution[],
-  sortBy: 'cost' | 'feasibility' | 'time' | 'impact' = 'feasibility'
+  sortBy: 'cost' | 'feasibility' | 'time' = 'feasibility'
 ): Solution[] {
   return [...solutions].sort((a, b) => {
     switch (sortBy) {
       case 'cost':
         return ((a.cost.min + a.cost.max) / 2) - ((b.cost.min + b.cost.max) / 2);
       case 'time':
-        return a.implementationTime.estimatedDays - b.implementationTime.estimatedDays;
-      case 'impact':
-        const impactScore = { High: 3, Medium: 2, Low: 1 };
-        return (impactScore[b.impact as keyof typeof impactScore] || 0) - 
-               (impactScore[a.impact as keyof typeof impactScore] || 0);
+        const aDays = Math.ceil((a.implementationTime.end.getTime() - a.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+        const bDays = Math.ceil((b.implementationTime.end.getTime() - b.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+        return aDays - bDays;
       case 'feasibility':
       default:
         return b.feasibility - a.feasibility;
@@ -115,27 +116,20 @@ export function getSolutionStats(solutions: Solution[]) {
       avgFeasibility: 0,
       avgCost: 0,
       avgDays: 0,
-      impactDistribution: { High: 0, Medium: 0, Low: 0 },
     };
   }
 
   const avgFeasibility = solutions.reduce((sum, s) => sum + s.feasibility, 0) / solutions.length;
   const avgCost = solutions.reduce((sum, s) => sum + (s.cost.min + s.cost.max) / 2, 0) / solutions.length;
-  const avgDays = solutions.reduce((sum, s) => sum + s.implementationTime.estimatedDays, 0) / solutions.length;
-  
-  const impactDistribution = solutions.reduce(
-    (dist, s) => {
-      dist[s.impact as keyof typeof dist]++;
-      return dist;
-    },
-    { High: 0, Medium: 0, Low: 0 }
-  );
+  const avgDays = solutions.reduce((sum, s) => {
+    const days = Math.ceil((s.implementationTime.end.getTime() - s.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+    return sum + days;
+  }, 0) / solutions.length;
 
   return {
     count: solutions.length,
     avgFeasibility: Math.round(avgFeasibility * 100) / 100,
     avgCost: Math.round(avgCost),
     avgDays: Math.round(avgDays),
-    impactDistribution,
   };
 }

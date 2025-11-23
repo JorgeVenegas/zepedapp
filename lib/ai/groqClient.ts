@@ -25,7 +25,7 @@ export async function generateSolutionsWithGroq(
       messages: [
         {
           role: "system",
-          content: `You are an expert IT solutions architect specializing in incident management and user satisfaction optimization. 
+          content: `You are an expert mobility solutions architect specializing in incident management and user satisfaction optimization. 
           Your task is to analyze incident patterns and generate practical, cost-effective solutions that improve user satisfaction.
           Always respond with valid JSON. Focus on solutions that address root causes, not just symptoms.
           Consider both technical and process improvements.`
@@ -45,16 +45,9 @@ export async function generateSolutionsWithGroq(
       throw new Error('No content received from Groq');
     }
 
-    console.log('🔍 RAW Groq Response:', content);
-
     // Clean the response to ensure it's valid JSON
     const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
-    
-    console.log('🧹 Cleaned Content:', cleanContent);
-    
     const parsed = JSON.parse(cleanContent);
-    
-    console.log('📊 Parsed JSON:', JSON.stringify(parsed, null, 2));
     
     // Validate response structure
     if (!parsed.solutions || !Array.isArray(parsed.solutions)) {
@@ -75,7 +68,7 @@ function createSolutionPrompt(pattern: any, options: any): string {
   if (options.feasibilityThreshold) constraints.push(`Minimum feasibility: ${options.feasibilityThreshold}/10`);
 
   return `
-Analyze this incident pattern and generate 3-5 practical solutions to improve user satisfaction:
+Analyze this incident pattern and generate 3 practical solutions to improve user satisfaction:
 
 INCIDENT PATTERN:
 - Title: ${pattern.title}
@@ -95,18 +88,19 @@ Generate solutions that:
 4. Are practical and implementable
 
 Consider these solution categories:
-- Infrastructure improvements (servers, networking, monitoring)
-- Process automation (workflows, alerts, self-service)
-- User experience enhancements (interfaces, documentation, training)
-- Preventive measures (capacity planning, redundancy, testing)
-- Communication improvements (status pages, notifications, feedback loops)
+
+- Infrastructure Failures and Service Reliability Deficiencies (servers, networking, monitoring)
+- Inefficiency in Travel Processes and Passenger Flow (workflows, alerts, self-service)
+- Poor User Experience and Wayfinding Difficulties (interfaces, documentation, training)
+- Service Vulnerability and Capacity Limitations (capacity planning, redundancy, testing)
+- Poor Communication and Lack of Transparency (status pages, notifications, feedback loops)
 
 For each solution, provide:
-- Feasibility score (1-10, where 10 is most feasible)
-- Cost estimate in USD (realistic ranges)
-- Implementation time in days
-- Expected impact (High/Medium/Low)
-- Reasoning for why this solution addresses the pattern
+- Infrastructure improvements (stations, signage, accessibility)
+- Service operation optimization (train frequency, scheduling, crowd management)
+- Passenger experience enhancements (ticketing systems, mobile apps, station amenities)
+- Safety and preventive measures (maintenance, inspections, incident prevention)
+- Communication improvements (real-time updates, announcements, feedback channels)
 
 Respond with ONLY this JSON format:
 {
@@ -117,10 +111,7 @@ Respond with ONLY this JSON format:
       "costMin": 5000,
       "costMax": 15000,
       "feasibility": 8,
-      "estimatedDays": 21,
-      "impact": "High",
-      "tags": ["automation", "monitoring", "user-experience"],
-      "reasoning": "This solution addresses the root cause by..."
+      "estimatedDays": 21
     }
   ]
 }

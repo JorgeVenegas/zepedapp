@@ -1,23 +1,15 @@
 export interface Solution {
-  id: string;
   name: string;
   description: string;
   cost: {
     min: number;
     max: number;
-    currency: string;
   };
   feasibility: number; // 1-10 scale (10 = most feasible)
   implementationTime: {
     start: Date;
     end: Date;
-    estimatedDays: number;
   };
-  patternId: string;
-  createdAt: Date;
-  tags: string[];
-  impact: string; // High, Medium, Low
-  reasoning?: string;
 }
 
 export interface SolutionGenerationOptions {
@@ -36,9 +28,6 @@ export interface GroqSolutionResponse {
     costMax: number;
     feasibility: number;
     estimatedDays: number;
-    tags: string[];
-    impact: string;
-    reasoning: string;
   }>;
 }
 

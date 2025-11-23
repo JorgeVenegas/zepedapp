@@ -23,25 +23,17 @@ export async function generateSolutions(
       endDate.setDate(startDate.getDate() + solution.estimatedDays);
       
       return {
-        id: uuidv4(),
         name: solution.name,
         description: solution.description,
         cost: {
           min: solution.costMin,
-          max: solution.costMax,
-          currency: 'USD'
+          max: solution.costMax
         },
         feasibility: Math.max(1, Math.min(10, solution.feasibility)), // Ensure 1-10 range
         implementationTime: {
           start: startDate,
-          end: endDate,
-          estimatedDays: solution.estimatedDays
-        },
-        patternId: pattern.id,
-        createdAt: new Date(),
-        tags: solution.tags || [],
-        impact: solution.impact || 'Medium',
-        reasoning: solution.reasoning
+          end: endDate
+        }
       };
     });
     
@@ -65,9 +57,12 @@ function filterSolutions(
       return false;
     }
     
-    // Time constraint
-    if (options.timeConstraint && solution.implementationTime.estimatedDays > options.timeConstraint) {
-      return false;
+    // Time constraint - calculate days from start to end date
+    if (options.timeConstraint) {
+      const days = Math.ceil((solution.implementationTime.end.getTime() - solution.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+      if (days > options.timeConstraint) {
+        return false;
+      }
     }
     
     // Feasibility threshold
@@ -88,19 +83,12 @@ function rankSolutions(
       case 'cost':
         return ((a.cost.min + a.cost.max) / 2) - ((b.cost.min + b.cost.max) / 2);
       case 'time':
-        return a.implementationTime.estimatedDays - b.implementationTime.estimatedDays;
-      case 'impact':
-        const impactScore = { High: 3, Medium: 2, Low: 1 };
-        return (impactScore[b.impact as keyof typeof impactScore] || 0) - 
-               (impactScore[a.impact as keyof typeof impactScore] || 0);
+        const aDays = Math.ceil((a.implementationTime.end.getTime() - a.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+        const bDays = Math.ceil((b.implementationTime.end.getTime() - b.implementationTime.start.getTime()) / (1000 * 60 * 60 * 24));
+        return aDays - bDays;
       case 'feasibility':
       default:
-        // Rank by feasibility * impact / cost ratio
-        const aScore = a.feasibility * (a.impact === 'High' ? 3 : a.impact === 'Medium' ? 2 : 1) / 
-                      (((a.cost.min + a.cost.max) / 2) / 1000);
-        const bScore = b.feasibility * (b.impact === 'High' ? 3 : b.impact === 'Medium' ? 2 : 1) / 
-                      (((b.cost.min + b.cost.max) / 2) / 1000);
-        return bScore - aScore;
+        return b.feasibility - a.feasibility;
     }
   });
 }
