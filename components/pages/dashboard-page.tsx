@@ -377,7 +377,7 @@ export function DashboardPage() {
           compactType={isEditMode ? null : "vertical"}
           preventCollision={true}
           margin={[20, 24]}
-          resizeHandles={['se', 'sw', 'ne', 'nw', 'e', 'w']}
+          resizeHandles={['se', 'sw', 'ne', 'nw', 'e', 'w', 'n', 's']}
           autoSize={true}
         >
           {layout.map((item) => (
