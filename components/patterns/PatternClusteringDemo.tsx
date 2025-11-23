@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import GenerateSolution from '@/components/solution/generate-solution';
 
 interface Pattern {
   id: string;
@@ -21,6 +23,7 @@ export default function PatternClusteringDemo() {
   const [loading, setLoading] = useState(false);
   const [patterns, setPatterns] = useState<Pattern[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [expandedPatterns, setExpandedPatterns] = useState<Set<string>>(new Set());
 
   const triggerClustering = async () => {
     setLoading(true);
@@ -72,6 +75,18 @@ export default function PatternClusteringDemo() {
     }
   };
 
+  const togglePatternExpansion = (patternId: string) => {
+    setExpandedPatterns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(patternId)) {
+        newSet.delete(patternId);
+      } else {
+        newSet.add(patternId);
+      }
+      return newSet;
+    });
+  };
+
   const getPriorityColor = (priority: number) => {
     if (priority >= 8) return 'destructive';
     if (priority >= 5) return 'default';
@@ -81,9 +96,9 @@ export default function PatternClusteringDemo() {
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col gap-4">
-        <h1 className="text-3xl font-bold">Pattern Clustering</h1>
+        <h1 className="text-3xl font-bold">Pattern Clustering & Solution Generation</h1>
         <p className="text-muted-foreground">
-          Automatically cluster incidents into patterns based on similarity
+          Automatically cluster incidents into patterns and generate AI-powered solutions to improve user satisfaction
         </p>
         
         <div className="flex gap-3">
@@ -138,12 +153,46 @@ export default function PatternClusteringDemo() {
                   <CardDescription>{pattern.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-sm text-muted-foreground">
-                    <p>
-                      Time range: {new Date(pattern.time_range.start).toLocaleString()} 
-                      {' → '}
-                      {new Date(pattern.time_range.end).toLocaleString()}
-                    </p>
+                  <div className="space-y-4">
+                    <div className="text-sm text-muted-foreground">
+                      <p>
+                        Time range: {new Date(pattern.time_range.start).toLocaleString()} 
+                        {' → '}
+                        {new Date(pattern.time_range.end).toLocaleString()}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={() => togglePatternExpansion(pattern.id)}
+                        variant="outline"
+                      >
+                        {expandedPatterns.has(pattern.id) ? (
+                          <>
+                            <ChevronUp className="w-4 h-4 mr-2" />
+                            Hide Solutions
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-4 h-4 mr-2" />
+                            Generate Solutions
+                          </>
+                        )}
+                      </Button>
+                    </div>
+
+                    {expandedPatterns.has(pattern.id) && (
+                      <>
+                        <div className="border-t my-4" />
+                        <GenerateSolution 
+                          pattern={pattern}
+                          onSolutionsGenerated={(solutions) => {
+                            console.log(`Generated ${solutions.length} solutions for pattern:`, pattern.title);
+                          }}
+                        />
+                      </>
+                    )}
                   </div>
                 </CardContent>
               </Card>

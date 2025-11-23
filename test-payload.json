@@ -1,0 +1,27 @@
+{
+  "pattern": {
+    "id": "test-pattern-1",
+    "title": "Database Connection Timeouts",
+    "description": "Multiple incidents of database connection timeouts affecting user login and data retrieval operations. Users report slow response times and failed login attempts during peak hours.",
+    "priority": 8,
+    "frequency": 12,
+    "time_range": {
+      "start": "2024-11-01T00:00:00Z",
+      "end": "2024-11-22T00:00:00Z"
+    },
+    "filters": {
+      "services": ["user-service", "auth-service"],
+      "categories": ["database", "performance"],
+      "keywords": ["timeout", "connection", "database", "slow"],
+      "priority_range": {
+        "min": 6,
+        "max": 10
+      }
+    }
+  },
+  "options": {
+    "maxSolutions": 3,
+    "feasibilityThreshold": 5,
+    "prioritizeBy": "feasibility"
+  }
+}
