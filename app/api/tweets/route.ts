@@ -3,13 +3,15 @@ import { TwitterClient } from '@/lib/client/twitter/twitter-client';
 import { TwitterService } from '@/lib/service/tweet-incident';
 import {entitiesToCSV} from "@/lib/service/parse-tweets";
 import {analyzeTwitterFeedback, parseAndValidateGroqResponse} from "@/lib/groq";
-import {TweetEntity} from "@/lib/client/twitter/types/twitter";
 import {supabase} from "@/lib/supabase/client";
+
+var currentCursor = "";
 
 export async function GET(request: NextRequest) {
     try{
         const apiKey = process.env.TWITTER_API_KEY;
         const twitterQuery = process.env.TWITTER_QUERY;
+
 
         if (!apiKey) {
             console.error('TWITTER_API_KEY not found in environment variables');
@@ -26,10 +28,10 @@ export async function GET(request: NextRequest) {
             );
         }
 
-        const client = new TwitterClient(apiKey, twitterQuery);
+        const client = new TwitterClient(apiKey, twitterQuery, currentCursor);
         // Fetch tweets
-        const tweets = await client.fetchLatestTweets();
-
+        const { tweets, nextCursor } = await client.fetchLatestTweets();
+        currentCursor = nextCursor;
         // Map to entities
         const entities = TwitterService.mapToEntities(tweets);
 
@@ -45,8 +47,20 @@ export async function GET(request: NextRequest) {
 
         let analyzedFeedback = [];
         if (feedbackTexts.length > 0) {
-            const groqResult = await analyzeTwitterFeedback(feedbackTexts);
-            analyzedFeedback = parseAndValidateGroqResponse(groqResult, feedbackTexts.length);
+            const midpoint = Math.ceil(feedbackTexts.length / 2);
+            const firstHalf = feedbackTexts.slice(0, midpoint);
+            const secondHalf = feedbackTexts.slice(midpoint);
+
+            // Process first half
+            const groqResult1 = await analyzeTwitterFeedback(firstHalf);
+            const analyzedFeedback1 = parseAndValidateGroqResponse(groqResult1, firstHalf.length);
+
+            // Process second half
+            const groqResult2 = await analyzeTwitterFeedback(secondHalf);
+            const analyzedFeedback2 = parseAndValidateGroqResponse(groqResult2, secondHalf.length);
+
+            // Merge results
+            analyzedFeedback = [...analyzedFeedback1, ...analyzedFeedback2];
         }
 
 
@@ -55,7 +69,8 @@ export async function GET(request: NextRequest) {
         const enrichedEntities = processedEntities.map((entity: any, idx: number) => ({
             ...entity,
             analysis: analyzedFeedback[idx] || null
-        }));
+        }))
+            .filter((entity: any) => entity.analysis !== null);
 
 
         const saveEntities = enrichedEntities.map(item => ({
@@ -72,7 +87,7 @@ export async function GET(request: NextRequest) {
         }))
 
         const { data, error } = await supabase
-            .from('incidents_x')
+            .from('incidents')
             .insert(saveEntities)
             .select()
 

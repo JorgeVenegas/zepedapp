@@ -117,7 +117,7 @@ export function parseAndValidateGroqResponse(
         const responseText = groqResult.choices[0].message.content;
 
         console.log("=== Response extracted successfully ===");
-        console.log("First 200 chars:", responseText.substring(0, 200));
+        console.log("Response received:", responseText);
 
         // Check if response was completed
         if (groqResult.choices[0].finish_reason !== "stop") {

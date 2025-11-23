@@ -6,6 +6,7 @@ export interface Tweet {
 
 export interface TwitterApiResponse {
     tweets: Tweet[];
+    next_cursor: string;
 }
 
 export interface TweetEntity {
