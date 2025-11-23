@@ -14,7 +14,7 @@ export function GeneralSettings() {
           placeholder="MAIA Analytics"
           className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary mb-4"
         />
-        <Button>Save Changes</Button>
+        <Button className="bg-red-600 hover:bg-red-700 text-white">Save Changes</Button>
       </Card>
 
       <Card className="p-6 bg-card border-border">
