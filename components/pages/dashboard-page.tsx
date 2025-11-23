@@ -105,6 +105,16 @@ export function DashboardPage() {
     return { w: 4, h: 3, minW: 2, minH: 2 }
   }
 
+  const getDragPreviewSize = (componentType: string) => {
+    const defaults = getComponentGridDefaults(componentType)
+    if (!containerRef.current) return null
+    const colWidth =
+      (containerWidth - GRID_MARGIN[0] * (GRID_COLS - 1) - GRID_CONTAINER_PADDING[0] * 2) / GRID_COLS
+    const width = defaults.w * colWidth + (defaults.w - 1) * GRID_MARGIN[0]
+    const height = defaults.h * GRID_ROW_HEIGHT + (defaults.h - 1) * GRID_MARGIN[1]
+    return { width, height }
+  }
+
   const [layout, setLayout] = useState<Layout[]>([
     // Metrics row
     { i: "metric-1", x: 0, y: 0, w: 3, h: 2, minW: 2, minH: 2 },
@@ -272,11 +282,26 @@ export function DashboardPage() {
     const defaults = getComponentGridDefaults(componentType)
     const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max)
 
-    // Start from the drop cell and offset so the cursor is near the center of the new item
-    const centeredX = clamp(layoutItem.x - Math.floor(defaults.w / 2), 0, GRID_COLS - defaults.w)
-    const centeredY = Math.max(layoutItem.y - Math.floor(defaults.h / 2), 0)
+    // Derive drop col/row from cursor and center the item under the cursor
+    let targetX = layoutItem.x
+    let targetY = layoutItem.y
 
-    addComponent(componentType, { x: centeredX, y: centeredY })
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect()
+      const colWidth =
+        (containerWidth - GRID_MARGIN[0] * (GRID_COLS - 1) - GRID_CONTAINER_PADDING[0] * 2) / GRID_COLS
+      const relativeX = event.clientX - rect.left - GRID_CONTAINER_PADDING[0]
+      const relativeY = event.clientY - rect.top - GRID_CONTAINER_PADDING[1]
+      const col = Math.floor(relativeX / (colWidth + GRID_MARGIN[0]))
+      const row = Math.floor(relativeY / (GRID_ROW_HEIGHT + GRID_MARGIN[1]))
+      targetX = clamp(col - Math.floor(defaults.w / 2), 0, GRID_COLS - defaults.w)
+      targetY = Math.max(row - Math.floor(defaults.h / 2), 0)
+    } else {
+      targetX = clamp(layoutItem.x - Math.floor(defaults.w / 2), 0, GRID_COLS - defaults.w)
+      targetY = Math.max(layoutItem.y - Math.floor(defaults.h / 2), 0)
+    }
+
+    addComponent(componentType, { x: targetX, y: targetY })
     setDraggingComponentType(null)
   }
 
@@ -520,6 +545,7 @@ export function DashboardPage() {
           onAddComponent={(componentType) => addComponent(componentType)}
           onComponentDragStart={handleComponentDragStart}
           onComponentDragEnd={handleComponentDragEnd}
+          getDragPreviewSize={getDragPreviewSize}
         />
       )}
     </div>

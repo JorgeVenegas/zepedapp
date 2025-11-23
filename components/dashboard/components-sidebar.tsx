@@ -11,6 +11,7 @@ interface ComponentsSidebarProps {
   onAddComponent: (componentType: string) => void
   onComponentDragStart?: (componentType: string) => void
   onComponentDragEnd?: () => void
+  getDragPreviewSize?: (componentType: string) => { width: number; height: number } | null
 }
 
 const availableComponents = [
@@ -32,15 +33,32 @@ export function ComponentsSidebar({
   onAddComponent,
   onComponentDragStart,
   onComponentDragEnd,
+  getDragPreviewSize,
 }: ComponentsSidebarProps) {
   const handleDragStart = (event: React.DragEvent<HTMLDivElement>, componentId: string) => {
     event.dataTransfer.setData(DATA_TRANSFER_TYPE, componentId)
     event.dataTransfer.setData("text/plain", componentId)
     event.dataTransfer.effectAllowed = "copy"
-    const target = event.currentTarget
-    const rect = target.getBoundingClientRect()
-    // Center the drag image under the cursor for better placement alignment
-    event.dataTransfer.setDragImage(target, rect.width / 2, rect.height / 2)
+    const size = getDragPreviewSize?.(componentId)
+    if (size) {
+      const ghost = document.createElement("div")
+      ghost.style.width = `${size.width}px`
+      ghost.style.height = `${size.height}px`
+      ghost.style.background = "transparent"
+      ghost.style.position = "absolute"
+      ghost.style.top = "-9999px"
+      ghost.style.left = "-9999px"
+      document.body.appendChild(ghost)
+      event.dataTransfer.setDragImage(ghost, size.width / 2, size.height / 2)
+      // Clean up after the drag starts
+      requestAnimationFrame(() => {
+        document.body.removeChild(ghost)
+      })
+    } else {
+      const target = event.currentTarget
+      const rect = target.getBoundingClientRect()
+      event.dataTransfer.setDragImage(target, rect.width / 2, rect.height / 2)
+    }
     onComponentDragStart?.(componentId)
   }
 
