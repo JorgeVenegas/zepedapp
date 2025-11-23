@@ -12,6 +12,7 @@ import { AreaChartComponent } from "@/components/dashboard/charts/area-chart"
 import { RadarChartComponent } from "@/components/dashboard/charts/radar-chart"
 import { TrendingUp, AlertTriangle, Activity, Zap, Edit3, Eye, ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ComponentPreview } from "@/components/dashboard/component-preview"
 import type { DisplayPattern } from "@/lib/types"
 
 export function DashboardPage() {
@@ -450,29 +451,30 @@ export function DashboardPage() {
                   </Button>
                 </div>
 
-                <div className="flex-1 overflow-auto space-y-3">
+                <div className="flex-1 overflow-auto space-y-4">
                   {availableComponents.map((component) => (
                     <div
                       key={component.id}
-                      className="p-4 bg-card border border-border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                      className="bg-card border-2 border-border rounded-lg hover:border-blue-400 hover:shadow-lg transition-all cursor-pointer group overflow-hidden"
                       onClick={() => addComponent(component.id)}
                     >
-                      <div className="flex items-start gap-3">
-                        <component.icon className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-semibold text-foreground mb-1">
-                            {component.name}
-                          </h3>
-                          <p className="text-xs text-muted-foreground">
-                            {component.description}
-                          </p>
-                          <div className="flex items-center gap-1 mt-2">
-                            <Plus className="w-3 h-3 text-blue-600" />
-                            <span className="text-xs text-blue-600 font-medium">
-                              Click to add
-                            </span>
-                          </div>
+                      {/* Preview Section */}
+                      <div className="h-32 bg-gradient-to-br from-slate-50 to-slate-100 p-4 flex items-center justify-center relative overflow-hidden">
+                        <ComponentPreview componentId={component.id} />
+                        {/* Hover overlay */}
+                        <div className="absolute inset-0 bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Plus className="w-8 h-8 text-blue-600" />
                         </div>
+                      </div>
+
+                      {/* Info Section */}
+                      <div className="p-3 border-t border-border">
+                        <h3 className="text-sm font-semibold text-foreground mb-1">
+                          {component.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {component.description}
+                        </p>
                       </div>
                     </div>
                   ))}
