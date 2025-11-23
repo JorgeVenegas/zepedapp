@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, AlertCircle, Clock, Activity, Sparkles, Loader2, Zap } from "lucide-react"
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet"
+import { TrendingUp, AlertCircle, Clock, Activity, Sparkles, Loader2, Zap, Save, Plus } from "lucide-react"
+import { mockPatterns } from "@/lib/mockPatterns"
 
 interface RecordsPatternsProps {
   filters?: Record<string, string[]>
@@ -18,6 +20,7 @@ interface Pattern {
   frequency: number
   filters: any
   incident_ids?: string[]
+  incidentIds?: string[]
 }
 
 const getPriorityConfig = (priority: number) => {
@@ -45,83 +48,91 @@ const getPriorityConfig = (priority: number) => {
 }
 
 export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
-  const [patterns, setPatterns] = useState<Pattern[]>([])
+  const [patterns, setPatterns] = useState<Pattern[]>(mockPatterns)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [hasGenerated, setHasGenerated] = useState(false)
+  const [hasGenerated, setHasGenerated] = useState(true) // Already "generated" with mock data
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isCreatingSolution, setIsCreatingSolution] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
+  const [solutionMessage, setSolutionMessage] = useState<string | null>(null)
 
-  const generatePatterns = async () => {
-    setIsGenerating(true)
-    setError(null)
+  const handlePatternClick = (pattern: Pattern) => {
+    setSelectedPattern(pattern)
+    setIsDrawerOpen(true)
+    setSaveMessage(null)
+    setSolutionMessage(null)
+  }
 
+  const handleSavePattern = async () => {
+    if (!selectedPattern) return
+    
+    setIsSaving(true)
+    setSaveMessage(null)
+    
     try {
-      console.log('🔍 Generating patterns with filters:', filters, 'dateRange:', dateRange)
+      const response = await fetch('/api/patterns', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(selectedPattern)
+      })
+      
+      if (response.ok) {
+        setSaveMessage('Pattern saved successfully!')
+      } else {
+        setSaveMessage('Failed to save pattern')
+      }
+    } catch (error) {
+      console.error('Error saving pattern:', error)
+      setSaveMessage('Error saving pattern')
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
-      const response = await fetch('/api/patterns/cluster', {
+  const handleCreateSolution = async () => {
+    if (!selectedPattern) return
+    
+    setIsCreatingSolution(true)
+    setSolutionMessage(null)
+    
+    try {
+      const response = await fetch('/api/solutions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          filters: filters || {},
-          dateRange: dateRange || 'Last 7 days'
-        }),
+          pattern: selectedPattern,
+          title: `Solution for: ${selectedPattern.title}`,
+          description: selectedPattern.description
+        })
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate patterns')
+      
+      if (response.ok) {
+        setSolutionMessage('Solution created successfully!')
+      } else {
+        setSolutionMessage('Failed to create solution')
       }
-
-      const data = await response.json()
-      console.log('✅ Generated patterns:', data.patterns)
-
-      setPatterns(data.patterns || [])
-      setHasGenerated(true)
-    } catch (err) {
-      console.error('❌ Error generating patterns:', err)
-      setError(err instanceof Error ? err.message : 'Unknown error')
+    } catch (error) {
+      console.error('Error creating solution:', error)
+      setSolutionMessage('Error creating solution')
     } finally {
-      setIsGenerating(false)
+      setIsCreatingSolution(false)
     }
   }
 
-  // Auto-generate patterns when component mounts or filters change
-  useEffect(() => {
-    if (!hasGenerated) {
-      generatePatterns()
-    }
-  }, []) // Only on mount
-
-  // Regenerate when filters or date range change (after initial generation)
-  useEffect(() => {
-    if (hasGenerated) {
-      generatePatterns()
-    }
-  }, [filters, dateRange])
-
-  if (!hasGenerated && isGenerating) {
-    return (
-      <div className="h-full flex items-center justify-center p-8">
-        <div className="text-center space-y-6 max-w-md">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 via-rose-500/20 to-red-500/20 blur-3xl animate-pulse"></div>
-            <Loader2 className="w-16 h-16 text-red-500 animate-spin relative mx-auto" />
-          </div>
-          <div className="space-y-3">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-red-600 via-rose-500 to-red-600 bg-clip-text text-transparent">
-              Generating Patterns
-            </h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Analyzing incidents with AI clustering algorithms
-            </p>
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-              <div className="w-2 h-2 rounded-full bg-rose-500 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-              <div className="w-2 h-2 rounded-full bg-red-500 animate-bounce" style={{ animationDelay: '300ms' }}></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  const generatePatterns = async () => {
+    // Using mock data instead of API call
+    console.log('📊 Loading mock patterns...')
+    setPatterns(mockPatterns)
+    setHasGenerated(true)
   }
+
+  // No auto-generation needed since we're using mock data
+  // Just show the patterns immediately
+
+  // Removed loading state since we're using mock data
 
   if (error) {
     return (
@@ -227,6 +238,7 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
             return (
               <div
                 key={pattern.id || `pattern-${idx}`}
+                onClick={() => handlePatternClick(pattern)}
                 className={`group relative rounded-2xl ${config.bg} border ${config.border} p-5 hover:shadow-2xl ${config.glow} transition-all duration-200 hover:scale-[1.02] cursor-pointer`}
               >
                 {/* Priority Badge */}
@@ -289,6 +301,169 @@ export function RecordsPatterns({ filters, dateRange }: RecordsPatternsProps) {
           </p>
         </div>
       </div>
+
+      {/* Pattern Details Drawer */}
+      <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          {selectedPattern && (
+            <>
+              <SheetHeader>
+                <SheetTitle className="text-2xl font-bold">{selectedPattern.title}</SheetTitle>
+                <SheetDescription className="text-base">
+                  Pattern details and related incidents
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-6 space-y-6">
+                {/* Priority Badge */}
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-slate-600">Priority:</span>
+                  <Badge 
+                    className={
+                      selectedPattern.priority === 1 
+                        ? "bg-red-100 text-red-700 border-red-300" 
+                        : selectedPattern.priority === 2 
+                        ? "bg-orange-100 text-orange-700 border-orange-300" 
+                        : "bg-yellow-100 text-yellow-700 border-yellow-300"
+                    }
+                  >
+                    P{selectedPattern.priority}
+                  </Badge>
+                  <span className="text-sm font-medium text-slate-600 ml-4">Frequency:</span>
+                  <Badge className="bg-slate-100 text-slate-700">
+                    {selectedPattern.frequency} occurrences
+                  </Badge>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {selectedPattern.description}
+                  </p>
+                </div>
+
+                {/* Filters */}
+                {selectedPattern.filters && Object.keys(selectedPattern.filters).length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-3">Applied Filters</h3>
+                    <div className="space-y-2">
+                      {Object.entries(selectedPattern.filters).map(([key, values]) => (
+                        <div key={key} className="bg-slate-50 rounded-lg p-3 border border-slate-200">
+                          <div className="text-xs font-semibold text-slate-700 mb-2 capitalize">
+                            {key.replace(/_/g, ' ')}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {Array.isArray(values) ? (
+                              values.map((value, idx) => (
+                                <Badge key={idx} variant="secondary" className="bg-white text-slate-700 border border-slate-300">
+                                  {value}
+                                </Badge>
+                              ))
+                            ) : (
+                              <Badge variant="secondary" className="bg-white text-slate-700 border border-slate-300">
+                                {String(values)}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Related Incidents Table */}
+                {(selectedPattern.incident_ids || selectedPattern.incidentIds) && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900 mb-3">
+                      Related Incidents ({(selectedPattern.incident_ids || selectedPattern.incidentIds || []).length})
+                    </h3>
+                    <div className="border border-slate-200 rounded-lg overflow-hidden">
+                      <div className="max-h-64 overflow-y-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 border-b border-slate-200 sticky top-0">
+                            <tr>
+                              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-700">#</th>
+                              <th className="px-4 py-2 text-left text-xs font-semibold text-slate-700">Incident ID</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {(selectedPattern.incident_ids || selectedPattern.incidentIds || []).map((id, idx) => (
+                              <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                <td className="px-4 py-2 text-xs text-slate-500">{idx + 1}</td>
+                                <td className="px-4 py-2 text-xs font-mono text-slate-700">{id}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 pt-4 border-t">
+                  <Button 
+                    onClick={handleCreateSolution}
+                    disabled={isCreatingSolution}
+                    className="flex-[2] bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all"
+                  >
+                    {isCreatingSolution ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Solution
+                      </>
+                    )}
+                  </Button>
+                  <Button 
+                    onClick={handleSavePattern} 
+                    disabled={isSaving}
+                    variant="outline"
+                    className="flex-1 border-slate-300 hover:bg-slate-50"
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4 mr-2" />
+                        Save
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Status Messages */}
+                {saveMessage && (
+                  <div className={`text-sm p-3 rounded-lg ${
+                    saveMessage.includes('success') 
+                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}>
+                    {saveMessage}
+                  </div>
+                )}
+                {solutionMessage && (
+                  <div className={`text-sm p-3 rounded-lg ${
+                    solutionMessage.includes('success') 
+                      ? 'bg-green-50 text-green-700 border border-green-200' 
+                      : 'bg-red-50 text-red-700 border border-red-200'
+                  }`}>
+                    {solutionMessage}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

@@ -15,10 +15,24 @@ async function getPipeline(): Promise<any> {
   
   try {
     console.log('🔧 Loading local embedding model (Xenova/all-MiniLM-L6-v2)...');
-    embeddingPipeline = await pipeline(
-      'feature-extraction',
-      'Xenova/all-MiniLM-L6-v2'
-    );
+    
+    // Suppress ONNX runtime warnings during model loading
+    const originalWarn = console.warn;
+    const originalLog = console.log;
+    console.warn = () => {};
+    console.log = () => {};
+    
+    try {
+      embeddingPipeline = await pipeline(
+        'feature-extraction',
+        'Xenova/all-MiniLM-L6-v2'
+      );
+    } finally {
+      // Restore console methods
+      console.warn = originalWarn;
+      console.log = originalLog;
+    }
+    
     console.log('✅ Local embedding model loaded successfully');
     return embeddingPipeline;
   } catch (error) {
@@ -153,16 +167,23 @@ export async function loadCachedEmbeddings(
 ): Promise<Map<string, number[]>> {
   const embeddings = new Map<string, number[]>();
   
-  if (incidentIds.length === 0) return embeddings;
+  if (incidentIds.length === 0) {
+    console.log('⚠️  No incident IDs provided for loading embeddings');
+    return embeddings;
+  }
   
   try {
+    console.log(`🔍 Attempting to load cached embeddings for ${incidentIds.length} incidents...`);
+    console.log(`   Sample IDs: ${incidentIds.slice(0, 3).join(', ')}`);
+    
     const { data, error } = await supabase
       .from('incident_embeddings')
       .select('incident_id, embedding')
       .in('incident_id', incidentIds);
     
     if (error) {
-      console.warn('Failed to load cached embeddings:', error.message);
+      console.error('❌ Failed to load cached embeddings:', error.message);
+      console.error('   Error details:', JSON.stringify(error, null, 2));
       return embeddings;
     }
     
@@ -170,10 +191,15 @@ export async function loadCachedEmbeddings(
       for (const row of data) {
         embeddings.set(row.incident_id, row.embedding);
       }
-      console.log(`📦 Loaded ${embeddings.size} cached embeddings from database`);
+      console.log(`📦 Loaded ${embeddings.size}/${incidentIds.length} cached embeddings from database`);
+      if (embeddings.size === 0 && incidentIds.length > 0) {
+        console.log('   ℹ️  No cached embeddings found - will generate new ones');
+      }
+    } else {
+      console.log('   ℹ️  Query returned no data');
     }
   } catch (error) {
-    console.warn('Error loading cached embeddings:', error);
+    console.error('❌ Error loading cached embeddings:', error);
   }
   
   return embeddings;
@@ -186,7 +212,10 @@ export async function saveCachedEmbeddings(
   embeddings: Map<string, number[]>,
   supabase: any
 ): Promise<void> {
-  if (embeddings.size === 0) return;
+  if (embeddings.size === 0) {
+    console.log('⚠️  No embeddings to save (map is empty)');
+    return;
+  }
   
   try {
     const records = Array.from(embeddings.entries()).map(([incident_id, embedding]) => ({
@@ -196,16 +225,27 @@ export async function saveCachedEmbeddings(
       created_at: new Date().toISOString(),
     }));
     
-    const { error } = await supabase
+    console.log(`💾 Attempting to save ${records.length} embeddings to database...`);
+    console.log(`   Sample IDs: ${records.slice(0, 3).map(r => r.incident_id).join(', ')}`);
+    console.log(`   Embedding dimension: ${records[0].embedding.length}`);
+    console.log(`   Sample embedding (first 5 values): [${records[0].embedding.slice(0, 5).join(', ')}...]`);
+    
+    const { data, error } = await supabase
       .from('incident_embeddings')
-      .upsert(records, { onConflict: 'incident_id' });
+      .upsert(records, { onConflict: 'incident_id' })
+      .select();
     
     if (error) {
-      console.warn('Failed to save embeddings to cache:', error.message);
+      console.error('❌ Failed to save embeddings to cache:', error.message);
+      console.error('   Error code:', error.code);
+      console.error('   Error details:', JSON.stringify(error, null, 2));
     } else {
-      console.log(`💾 Saved ${records.length} embeddings (384D vectors) to database cache`);
+      console.log(`✅ Successfully saved ${records.length} embeddings (384D vectors) to database cache`);
+      console.log(`   Rows returned from database: ${data?.length || 0}`);
     }
-  } catch (error) {
-    console.warn('Error saving embeddings to cache:', error);
+  } catch (error: any) {
+    console.error('❌ Exception saving embeddings to cache:', error);
+    console.error('   Exception message:', error?.message);
+    console.error('   Exception stack:', error?.stack);
   }
 }

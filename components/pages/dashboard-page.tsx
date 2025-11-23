@@ -13,7 +13,7 @@ import { RadarChartComponent } from "@/components/dashboard/charts/radar-chart"
 import { TrendingUp, AlertTriangle, Activity, Zap, Edit3, Eye, Plus, Trash2, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ComponentsSidebar } from "@/components/dashboard/components-sidebar"
-import type { DisplayPattern } from "@/lib/types"
+import type { Pattern } from "@/lib/types"
 
 const INITIAL_GRID_ITEMS = new Set([
   "metric-1",
@@ -54,7 +54,7 @@ export function DashboardPage() {
     return () => window.removeEventListener('resize', updateWidth)
   }, [])
 
-  const externalPatterns: DisplayPattern[] = [
+  const externalPatterns: Pattern[] = [
     {
       id: "1",
       title: "#mobility",

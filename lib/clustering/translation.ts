@@ -15,10 +15,24 @@ async function getTranslationPipeline(): Promise<any> {
   
   try {
     console.log('🔧 Loading translation model (NLLB-200-distilled-600M)...');
-    translationPipeline = await pipeline(
-      'translation',
-      'Xenova/nllb-200-distilled-600M'
-    );
+    
+    // Suppress ONNX runtime warnings during model loading
+    const originalWarn = console.warn;
+    const originalLog = console.log;
+    console.warn = () => {};
+    console.log = () => {};
+    
+    try {
+      translationPipeline = await pipeline(
+        'translation',
+        'Xenova/nllb-200-distilled-600M'
+      );
+    } finally {
+      // Restore console methods
+      console.warn = originalWarn;
+      console.log = originalLog;
+    }
+    
     console.log('✅ Translation model loaded successfully');
     return translationPipeline;
   } catch (error) {
@@ -110,16 +124,23 @@ export async function loadCachedTranslations(
 ): Promise<Map<string, { summary: string; keywords: string[] }>> {
   const translations = new Map<string, { summary: string; keywords: string[] }>();
   
-  if (incidentIds.length === 0) return translations;
+  if (incidentIds.length === 0) {
+    console.log('⚠️  No incident IDs provided for loading translations');
+    return translations;
+  }
   
   try {
+    console.log(`🔍 Attempting to load cached translations for ${incidentIds.length} incidents...`);
+    console.log(`   Sample IDs: ${incidentIds.slice(0, 3).join(', ')}`);
+    
     const { data, error } = await supabase
       .from('incident_translations')
       .select('incident_id, translated_summary, translated_keywords')
       .in('incident_id', incidentIds);
     
     if (error) {
-      console.warn('Failed to load cached translations:', error.message);
+      console.error('❌ Failed to load cached translations:', error.message);
+      console.error('   Error details:', JSON.stringify(error, null, 2));
       return translations;
     }
     
@@ -130,10 +151,15 @@ export async function loadCachedTranslations(
           keywords: row.translated_keywords || []
         });
       }
-      console.log(`📦 Loaded ${translations.size} cached translations from database`);
+      console.log(`📦 Loaded ${translations.size}/${incidentIds.length} cached translations from database`);
+      if (translations.size === 0 && incidentIds.length > 0) {
+        console.log('   ℹ️  No cached translations found - will translate Spanish incidents');
+      }
+    } else {
+      console.log('   ℹ️  Query returned no data');
     }
   } catch (error) {
-    console.warn('Error loading cached translations:', error);
+    console.error('❌ Error loading cached translations:', error);
   }
   
   return translations;
@@ -146,7 +172,10 @@ export async function saveCachedTranslations(
   translations: Map<string, { summary: string; keywords: string[] }>,
   supabase: any
 ): Promise<void> {
-  if (translations.size === 0) return;
+  if (translations.size === 0) {
+    console.log('⚠️  No translations to save (map is empty)');
+    return;
+  }
   
   try {
     const records = Array.from(translations.entries()).map(([incident_id, trans]) => ({
@@ -156,17 +185,23 @@ export async function saveCachedTranslations(
       created_at: new Date().toISOString(),
     }));
     
-    const { error } = await supabase
+    console.log(`💾 Attempting to save ${records.length} translations to database...`);
+    console.log(`   Sample IDs: ${records.slice(0, 3).map(r => r.incident_id).join(', ')}`);
+    
+    const { data, error } = await supabase
       .from('incident_translations')
-      .upsert(records, { onConflict: 'incident_id' });
+      .upsert(records, { onConflict: 'incident_id' })
+      .select();
     
     if (error) {
-      console.warn('Failed to save translations to cache:', error.message);
+      console.error('❌ Failed to save translations to cache:', error.message);
+      console.error('   Error details:', JSON.stringify(error, null, 2));
     } else {
-      console.log(`💾 Saved ${records.length} translations to database cache`);
+      console.log(`✅ Successfully saved ${records.length} translations to database cache`);
+      console.log(`   Rows affected: ${data?.length || 0}`);
     }
   } catch (error) {
-    console.warn('Error saving translations to cache:', error);
+    console.error('❌ Error saving translations to cache:', error);
   }
 }
 
@@ -177,6 +212,8 @@ export async function translateIncidents(
   incidents: NormalizedIncident[],
   cachedTranslations?: Map<string, { summary: string; keywords: string[] }>
 ): Promise<Map<string, { summary: string; keywords: string[] }>> {
+  console.log(`[translateIncidents] Called with ${incidents.length} incidents, ${cachedTranslations?.size || 0} cached translations`);
+  
   const translations = cachedTranslations || new Map();
   
   const pipe = await getTranslationPipeline();
