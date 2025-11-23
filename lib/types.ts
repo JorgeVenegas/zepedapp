@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Incident types
 export interface Incident {
   id: string
@@ -42,6 +43,8 @@ export interface Solution {
 }
 
 // Legacy DataRecord type (for backward compatibility)
+=======
+>>>>>>> b31e7e668c691fdf1339eb7af089f88c252d02de
 export interface DataRecord {
   id: string
   source: "twitter" | "facebook" | "instagram" | "internal"
